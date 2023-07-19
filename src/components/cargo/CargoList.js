@@ -117,9 +117,9 @@ export default function CustomizedTables() {
     } else if (carrier.toUpperCase().includes("UPS")) {
       return `https://www.ups.com/track?tracknum=${tn}`;
     } else if (carrier.toUpperCase().includes("TNT")) {
-      return `https://www.tnt.com/express/en_gc/site/shipping-tools/track.html?searchType=con&cons${tn}`;
+      return `https://www.tnt.com/express/en_gc/site/shipping-tools/track.html?searchType=con&cons=${tn}`;
     } else if (carrier.toUpperCase().includes("FEDEX")) {
-      return `https://www.fedex.com/fedextrack/no-results-found?trknbr${tn}`;
+      return `https://www.fedex.com/fedextrack/no-results-found?trknbr=${tn}`;
     } else {
       return tn;
     }
