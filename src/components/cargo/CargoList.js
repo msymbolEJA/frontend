@@ -1,25 +1,25 @@
-import React, { useEffect, useState, useContext, useCallback } from "react";
-import { withStyles, makeStyles } from "@material-ui/core/styles";
+import Button from "@material-ui/core/Button";
+import Paper from "@material-ui/core/Paper";
 import Table from "@material-ui/core/Table";
 import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableContainer from "@material-ui/core/TableContainer";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
-import Paper from "@material-ui/core/Paper";
-import { getData } from "../../helper/PostData";
-import moment from "moment";
 import Typography from "@material-ui/core/Typography";
+import { green } from "@material-ui/core/colors";
+import { makeStyles, withStyles } from "@material-ui/core/styles";
+import DownloadFile from "@material-ui/icons/GetApp";
+import moment from "moment";
+import React, { useCallback, useContext, useEffect, useState } from "react";
+import { FormattedMessage } from "react-intl";
 import { useHistory } from "react-router-dom";
 import { AppContext } from "../../context/Context";
-import Button from "@material-ui/core/Button";
-import { FormattedMessage } from "react-intl";
-import EditableTableCell from "./EditableTableCell";
-import { putData } from "../../helper/PostData";
+import { getData, putData } from "../../helper/PostData";
 import api from "../../helper/api";
 import ConfirmDialog from "../otheritems/ConfirmModal";
-import { toastSuccessNotify } from "../otheritems/ToastNotify";
-import DownloadFile from "@material-ui/icons/GetApp";
+import { toastErrorNotify, toastSuccessNotify } from "../otheritems/ToastNotify";
+import EditableTableCell from "./EditableTableCell";
 
 const BASE_URL = process.env.REACT_APP_BASE_URL;
 
@@ -49,6 +49,16 @@ const StyledTableRow = withStyles(theme => ({
     },
   },
 }))(TableRow);
+
+const ColorButton = withStyles(theme => ({
+  root: {
+    backgroundColor: green[500],
+    whiteSpace: "nowrap",
+    "&:hover": {
+      backgroundColor: green[700],
+    },
+  },
+}))(Button);
 
 const useStyles = makeStyles({
   table: {
@@ -162,13 +172,17 @@ export default function CustomizedTables() {
         ? `/etsy/undoCargo/${selectedItem?.id}/`
         : selectedItem?.action === "delete"
         ? `/etsy/cancelCargo/${selectedItem?.id}/`
+        : selectedItem?.action === "to_ship"
+        ? `/etsy/to_ship/${selectedItem?.id}/`
         : null;
     api(url, "get")
       .then(response => {
-        toastSuccessNotify(response?.data);
+        toastSuccessNotify(response?.data?.message || response.data);
         getListFunc();
       })
-      .catch(error => console.log(error))
+      .catch(error => {
+        toastErrorNotify(error?.response?.data?.message ||error?.message);
+      })
       .finally(() => setSelectedItem(null));
   };
 
@@ -385,6 +399,16 @@ export default function CustomizedTables() {
                         >
                           <FormattedMessage id="delete" defaultMessage="Delete" />
                         </Button>
+                        <br />
+                        <br />
+                        <ColorButton
+                          variant="contained"
+                          size="small"
+                          onClick={e => handleConfirmModal(e, row.id, "to_ship")}
+                          color="primary"
+                        >
+                          <FormattedMessage id="to_ship" defaultMessage="to_ship" />
+                        </ColorButton>
                       </StyledTableCell>
                     )}
                   </StyledTableRow>
