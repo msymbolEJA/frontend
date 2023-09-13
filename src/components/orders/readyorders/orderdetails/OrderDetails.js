@@ -439,7 +439,6 @@ const OrderDetails = ({ match }) => {
           </Table>
           <div style={{ marginTop: "2rem" }}>
             {process.env.REACT_APP_INT_ACTIVE === "true" &&
-              rows[0]?.country_id !== "209" &&
               (userRole === "admin" ||
                 userRole === "shop_manager" ||
                 localUser === "Kalanima" ||
