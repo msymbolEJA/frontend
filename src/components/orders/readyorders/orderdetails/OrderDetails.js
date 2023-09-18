@@ -445,6 +445,9 @@ const OrderDetails = ({ match }) => {
                 localUser === "Umraniye") ? (
               <>
                 <p>
+                  Name: <b>{rows[0]?.buyer}</b>
+                </p>
+                <p>
                   Address: <b>{rows[0]?.formatted_address} </b>
                 </p>
                 <p>
