@@ -381,7 +381,7 @@ export default function CustomizedTables() {
                               color="primary"
                               className={classes.print}
                               onClick={() => printHandler(row.id, "DHL")}
-                              disabled
+                              disabled={true}
                             >
                               <FormattedMessage id="getLabel" defaultMessage="Get Label DHL" />
                             </Button>
