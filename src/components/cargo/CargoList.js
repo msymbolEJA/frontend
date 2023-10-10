@@ -181,21 +181,33 @@ export default function CustomizedTables() {
         getListFunc();
       })
       .catch(error => {
-        toastErrorNotify(error?.response?.data?.message ||error?.message);
+        toastErrorNotify(error?.response?.data?.message || error?.message);
       })
       .finally(() => setSelectedItem(null));
   };
 
-  const printHandler = id => {
-    if (id)
-      getData(`${BASE_URL}dhl/createdhlBulkLabel_cargo/${id}/`)
-        .then(response => {
-          window?.location.reload(false);
-        })
-        .catch(({ response }) => {
-          console.log(response.data.Failed);
-        })
-        .finally(() => {});
+  const printHandler = (id, cargoType) => {
+    if (id) {
+      if (cargoType === "DHL") {
+        getData(`${BASE_URL}dhl/createdhlBulkLabel_cargo/${id}/`)
+          .then(response => {
+            window?.location.reload(false);
+          })
+          .catch(({ response }) => {
+            console.log(response.data.Failed);
+          })
+          .finally(() => {});
+      } else if (cargoType === "USPS") {
+        getData(`${BASE_URL}usps/createuspsBulkLabel_cargo/${id}/`)
+          .then(response => {
+            window?.location.reload(false);
+          })
+          .catch(({ response }) => {
+            console.log(response.data.Failed);
+          })
+          .finally(() => {});
+      }
+    }
   };
 
   const handleConfirmModal = (e, id, action) => {
@@ -363,16 +375,30 @@ export default function CustomizedTables() {
                       userRole === "shop_packer") ? (
                       <StyledTableCell align="center" onClick={e => e.stopPropagation()}>
                         {!row?.is_label ? (
-                          <Button
-                            variant="contained"
-                            color="primary"
-                            className={classes.print}
-                            onClick={() => printHandler(row.id)}
-                          >
-                            <FormattedMessage id="getLabel" defaultMessage="Get Label" />
-                          </Button>
+                          <>
+                            <Button
+                              variant="contained"
+                              color="primary"
+                              className={classes.print}
+                              onClick={() => printHandler(row.id, "DHL")}
+                              disabled
+                            >
+                              <FormattedMessage id="getLabel" defaultMessage="Get Label DHL" />
+                            </Button>
+
+                            <ColorButton
+                              variant="contained"
+                              size="small"
+                              className={classes.print}
+                              color="primary"
+                              style={{ marginTop: 4 }}
+                              onClick={() => printHandler(row.id, "USPS")}
+                            >
+                              <FormattedMessage id="getLabel" defaultMessage="Get Label USPS" />
+                            </ColorButton>
+                          </>
                         ) : (
-                          <a href={`${BASE_URL}media/dhl/${row.id}.zip`}>
+                          <a href={`${BASE_URL}media/usps/${row.id}.zip`}>
                             <DownloadFile />
                           </a>
                         )}
