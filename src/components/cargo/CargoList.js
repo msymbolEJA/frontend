@@ -20,6 +20,9 @@ import api from "../../helper/api";
 import ConfirmDialog from "../otheritems/ConfirmModal";
 import { toastErrorNotify, toastSuccessNotify } from "../otheritems/ToastNotify";
 import EditableTableCell from "./EditableTableCell";
+import { IconButton } from "@material-ui/core";
+import axios from "axios";
+import { lightGreen, blue } from "@material-ui/core/colors";
 
 const BASE_URL = process.env.REACT_APP_BASE_URL;
 
@@ -184,6 +187,34 @@ export default function CustomizedTables() {
         toastErrorNotify(error?.response?.data?.message || error?.message);
       })
       .finally(() => setSelectedItem(null));
+  };
+
+  const handleDownload = async row => {
+    const dhlResponse = await axios.get(`${BASE_URL}/media/dhl/${row.id}.zip`, {
+      responseType: "blob",
+    });
+
+    if (dhlResponse.status === 200) {
+      const blob = dhlResponse?.data;
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.setAttribute("download", `${row.id}.zip`);
+      document.body.appendChild(link);
+      link.click();
+    } else {
+      const uspsResponse = await axios.get(`${BASE_URL}/media/usps/${row.id}.zip`, {
+        responseType: "blob",
+      });
+
+      if (uspsResponse.status === 200) {
+        const blob = uspsResponse?.data;
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.setAttribute("download", `${row.id}.zip`);
+        document.body.appendChild(link);
+        link.click();
+      }
+    }
   };
 
   const printHandler = (id, cargoType) => {
@@ -381,7 +412,7 @@ export default function CustomizedTables() {
                               color="primary"
                               className={classes.print}
                               onClick={() => printHandler(row.id, "DHL")}
-                              disabled={true}
+                              style={{ backgroundColor: lightGreen?.[400] }}
                             >
                               <FormattedMessage id="getLabel" defaultMessage="Get Label DHL" />
                             </Button>
@@ -391,16 +422,16 @@ export default function CustomizedTables() {
                               size="small"
                               className={classes.print}
                               color="primary"
-                              style={{ marginTop: 4 }}
+                              style={{ marginTop: 8, backgroundColor: blue?.[400] }}
                               onClick={() => printHandler(row.id, "USPS")}
                             >
                               <FormattedMessage id="getLabel" defaultMessage="Get Label USPS" />
                             </ColorButton>
                           </>
                         ) : (
-                          <a href={`${BASE_URL}media/usps/${row.id}.zip`}>
-                            <DownloadFile />
-                          </a>
+                          <IconButton onClick={() => handleDownload(row)}>
+                            <DownloadFile color="primary" />
+                          </IconButton>
                         )}
                       </StyledTableCell>
                     ) : null}
