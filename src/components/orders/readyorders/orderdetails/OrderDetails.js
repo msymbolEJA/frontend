@@ -224,19 +224,28 @@ const OrderDetails = ({ match }) => {
       .finally(() => setRefresh(!refresh));
   };
 
+
+    const createCargoLabelUSPS = () => {
+      getData(`${BASE_URL}usps/createuspsOneLabel_cargo/${match.params.id}/`)
+        .then(response => {
+          if (!response?.data || response.data.includes("Not Found")) {
+            alert("Address not found");
+          } else alert("Address is valid");
+        })
+        .catch(error => {
+          console.log(error);
+        })
+        .finally(() => setRefresh(!refresh));
+    };
+
   return (
     <div>
       <Paper className={classes.root}>
         <div style={{ display: "flex", justifyContent: "space-between" }}>
           <Typography className={classes.header}>
-            <FormattedMessage
-              id="orderDetails"
-              defaultMessage="Order Details"
-            />
+            <FormattedMessage id="orderDetails" defaultMessage="Order Details" />
           </Typography>
-          {userRole === "admin" ||
-            userRole === "shop_manager" ||
-            userRole === "shop_packer" ? (
+          {userRole === "admin" || userRole === "shop_manager" || userRole === "shop_packer" ? (
             <>
               <div
                 style={{
@@ -253,10 +262,7 @@ const OrderDetails = ({ match }) => {
                     className={classes.button}
                     onClick={handleSendToStock}
                   >
-                    <FormattedMessage
-                      id="sendToStock"
-                      defaultMessage="Send To Stock"
-                    />
+                    <FormattedMessage id="sendToStock" defaultMessage="Send To Stock" />
                   </Button>
                   <Button
                     variant="contained"
@@ -266,10 +272,7 @@ const OrderDetails = ({ match }) => {
                     style={{ marginTop: "0.3rem", marginBottom: "0.2rem" }}
                     onClick={handleSoldFromStock}
                   >
-                    <FormattedMessage
-                      id="soldFromStock"
-                      defaultMessage="Sold from Stock"
-                    />
+                    <FormattedMessage id="soldFromStock" defaultMessage="Sold from Stock" />
                   </Button>
                 </div>
               </div>
@@ -278,22 +281,14 @@ const OrderDetails = ({ match }) => {
         </div>
 
         <TableContainer className={classes.container}>
-          <Table
-            className={classes.table}
-            stickyHeader
-            aria-label="sticky table"
-            size="small"
-          >
+          <Table className={classes.table} stickyHeader aria-label="sticky table" size="small">
             <TableHead>
               <TableRow>
                 <StyledTableCell align="center">
                   <FormattedMessage id="id" defaultMessage="Id" />
                 </StyledTableCell>
                 <StyledTableCell align="center">
-                  <FormattedMessage
-                    id="receiptId"
-                    defaultMessage="Receipt Id"
-                  />
+                  <FormattedMessage id="receiptId" defaultMessage="Receipt Id" />
                 </StyledTableCell>
                 <StyledTableCell align="center">
                   <FormattedMessage id="date" defaultMessage="Date" />
@@ -302,17 +297,14 @@ const OrderDetails = ({ match }) => {
                   <FormattedMessage id="status" defaultMessage="Status" />
                 </StyledTableCell>
                 {userRole === "admin" ||
-                  userRole === "shop_manager" ||
-                  userRole === "shop_packer" ? (
+                userRole === "shop_manager" ||
+                userRole === "shop_packer" ? (
                   <>
                     <StyledTableCell align="center">
                       <FormattedMessage id="buyer" defaultMessage="Buyer" />
                     </StyledTableCell>
                     <StyledTableCell align="center">
-                      <FormattedMessage
-                        id="supplier"
-                        defaultMessage="Supplier"
-                      />
+                      <FormattedMessage id="supplier" defaultMessage="Supplier" />
                     </StyledTableCell>
                   </>
                 ) : null}
@@ -328,10 +320,7 @@ const OrderDetails = ({ match }) => {
                       <FormattedMessage id="color" defaultMessage="Color" />
                     </StyledTableCell>
                     <StyledTableCell align="center">
-                      <FormattedMessage
-                        id="explanationMod"
-                        defaultMessage="Org-Explanation"
-                      />
+                      <FormattedMessage id="explanationMod" defaultMessage="Org-Explanation" />
                     </StyledTableCell>
                   </>
                 ) : (
@@ -346,10 +335,7 @@ const OrderDetails = ({ match }) => {
                       <FormattedMessage id="color" defaultMessage="Color" />
                     </StyledTableCell>
                     <StyledTableCell align="center">
-                      <FormattedMessage
-                        id="quantity"
-                        defaultMessage="Quantity"
-                      />
+                      <FormattedMessage id="quantity" defaultMessage="Quantity" />
                     </StyledTableCell>
                     <StyledTableCell align="center">
                       <FormattedMessage id="size" defaultMessage="Size" />
@@ -360,18 +346,14 @@ const OrderDetails = ({ match }) => {
                   </>
                 )}
                 <StyledTableCell align="center">
-                  <FormattedMessage
-                    id="explanation"
-                    defaultMessage="Explanation"
-                  />
+                  <FormattedMessage id="explanation" defaultMessage="Explanation" />
                 </StyledTableCell>
-                {process.env.REACT_APP_STORE_NAME !== "Mina" && process.env.REACT_APP_STORE_NAME !== "Linen Serisi" ?
+                {process.env.REACT_APP_STORE_NAME !== "Mina" &&
+                process.env.REACT_APP_STORE_NAME !== "Linen Serisi" ? (
                   <StyledTableCell align="center">
-                    <FormattedMessage
-                      id="giftMessage"
-                      defaultMessage="Gift Message"
-                    />
-                  </StyledTableCell> : null}
+                    <FormattedMessage id="giftMessage" defaultMessage="Gift Message" />
+                  </StyledTableCell>
+                ) : null}
 
                 <StyledTableCell align="center">
                   <FormattedMessage id="note" defaultMessage="Note" />
@@ -380,17 +362,15 @@ const OrderDetails = ({ match }) => {
             </TableHead>
             <TableBody>
               {rows ? (
-                rows?.map((row) => (
+                rows?.map(row => (
                   <StyledTableRow key={row.id} id={row.id}>
                     <CustomTableCell {...{ row, name: "id" }} />
-                    <CustomTableCell
-                      {...{ row, name: "receipt_id", name2: "is_repeat" }}
-                    />
+                    <CustomTableCell {...{ row, name: "receipt_id", name2: "is_repeat" }} />
                     <CustomTableCell {...{ row, name: "created_date" }} />
                     <CustomTableCell {...{ row, name: "status" }} />
                     {userRole === "admin" ||
-                      userRole === "shop_manager" ||
-                      userRole === "shop_packer" ? (
+                    userRole === "shop_manager" ||
+                    userRole === "shop_packer" ? (
                       <>
                         <CustomTableCell {...{ row, name: "buyer" }} />
                         <CustomTableCell {...{ row, name: "supplier" }} />
@@ -399,15 +379,9 @@ const OrderDetails = ({ match }) => {
                     {NON_SKU ? (
                       <>
                         <CustomTableCell {...{ row, name: "sku" }} />
-                        <CustomTableCell
-                          {...{ row, name: "variation_1_value" }}
-                        />
-                        <CustomTableCell
-                          {...{ row, name: "variation_2_value" }}
-                        />
-                        <CustomTableCell
-                          {...{ row, name: "explanation_mod" }}
-                        />
+                        <CustomTableCell {...{ row, name: "variation_1_value" }} />
+                        <CustomTableCell {...{ row, name: "variation_2_value" }} />
+                        <CustomTableCell {...{ row, name: "explanation_mod" }} />
                       </>
                     ) : (
                       <>
@@ -420,7 +394,10 @@ const OrderDetails = ({ match }) => {
                       </>
                     )}
                     <CustomTableCell {...{ row, name: "explanation" }} />
-                    {process.env.REACT_APP_STORE_NAME !== "Mina" && process.env.REACT_APP_STORE_NAME !== "Linen Serisi" ? <CustomTableCell {...{ row, name: "gift_message" }} /> : null}
+                    {process.env.REACT_APP_STORE_NAME !== "Mina" &&
+                    process.env.REACT_APP_STORE_NAME !== "Linen Serisi" ? (
+                      <CustomTableCell {...{ row, name: "gift_message" }} />
+                    ) : null}
 
                     <CustomTableCell {...{ row, name: "note" }} />
                   </StyledTableRow>
@@ -428,10 +405,7 @@ const OrderDetails = ({ match }) => {
               ) : (
                 <tr>
                   <td colSpan="13" style={{ fontSize: "2rem" }}>
-                    <FormattedMessage
-                      id="nothingFound"
-                      defaultMessage="Nothing Found!"
-                    />
+                    <FormattedMessage id="nothingFound" defaultMessage="Nothing Found!" />
                   </td>
                 </tr>
               )}
@@ -439,10 +413,10 @@ const OrderDetails = ({ match }) => {
           </Table>
           <div style={{ marginTop: "2rem" }}>
             {process.env.REACT_APP_INT_ACTIVE === "true" &&
-              (userRole === "admin" ||
-                userRole === "shop_manager" ||
-                localUser === "Kalanima" ||
-                localUser === "Umraniye") ? (
+            (userRole === "admin" ||
+              userRole === "shop_manager" ||
+              localUser === "Kalanima" ||
+              localUser === "Umraniye") ? (
               <>
                 <p>
                   Name: <b>{rows[0]?.buyer}</b>
@@ -478,19 +452,10 @@ const OrderDetails = ({ match }) => {
         </>
       ) : null}
 
-      {["in_progress", "ready", "in_transit", "shipped"].includes(
-        rows[0]?.status
-      ) && isPdfExist ? (
+      {["in_progress", "ready", "in_transit", "shipped"].includes(rows[0]?.status) && isPdfExist ? (
         <>
-          <a
-            href={`${BASE_URL}media/pdf/${match.params.id}.pdf`}
-            target="_blank"
-            rel="noreferrer"
-          >
-            <FormattedMessage
-              id="openPrintedPDF"
-              defaultMessage="Open Printed Pdf"
-            />
+          <a href={`${BASE_URL}media/pdf/${match.params.id}.pdf`} target="_blank" rel="noreferrer">
+            <FormattedMessage id="openPrintedPDF" defaultMessage="Open Printed Pdf" />
           </a>
         </>
       ) : (
@@ -508,19 +473,15 @@ const OrderDetails = ({ match }) => {
             margin: "2rem",
           }}
         >
-          <Button
-            color="primary"
-            variant="contained"
-            onClick={handleValidateAddress}
-          >
+          <Button color="primary" variant="contained" onClick={handleValidateAddress}>
             Validate address
           </Button>
-          <Button
-            color="primary"
-            variant="contained"
-            onClick={createCargoLabel}
-          >
+          <Button color="primary" variant="contained" onClick={createCargoLabel}>
             Get DHL LABEL
+          </Button>
+
+          <Button color="primary" variant="contained" onClick={createCargoLabelUSPS}>
+            Get USPS LABEL
           </Button>
           {isLabelExist && (
             <a
@@ -562,10 +523,7 @@ const OrderDetails = ({ match }) => {
               logs.reverse().map((log, i) => (
                 <TableRow key={i} className={classes.tableRow}>
                   <TableCell component="th" scope="row" align="center">
-                    {moment
-                      .utc(log.change_date)
-                      .local()
-                      .format("MM-DD-YY HH:mm")}
+                    {moment.utc(log.change_date).local().format("MM-DD-YY HH:mm")}
                   </TableCell>
                   <TableCell align="center">{log.user}</TableCell>
                   <TableCell align="center">
