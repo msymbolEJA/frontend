@@ -13,7 +13,7 @@ import Typography from "@material-ui/core/Typography";
 import ContactMailIcon from "@material-ui/icons/ContactMail";
 const BASE_URL = process.env.REACT_APP_BASE_URL;
 
-const StyledTableCell = withStyles((theme) => ({
+const StyledTableCell = withStyles(theme => ({
   head: {
     backgroundColor: "rgb(100, 149, 237)",
     color: theme.palette.common.black,
@@ -23,7 +23,7 @@ const StyledTableCell = withStyles((theme) => ({
   },
 }))(TableCell);
 
-const StyledTableRow = withStyles((theme) => ({
+const StyledTableRow = withStyles(theme => ({
   root: {
     "&:nth-of-type(odd)": {
       backgroundColor: theme.palette.action.hover,
@@ -48,36 +48,30 @@ const useStyles = makeStyles({
 export default function CustomizedTables({ match }) {
   const classes = useStyles();
   const [cargoList, setCargoList] = useState([]);
-  const handleSendTrackingCode = (rowId) => {
+  const handleSendTrackingCode = rowId => {
     rowId &&
       getData(`${BASE_URL}dhl/send_tracking_code_by_one/${rowId}/`)
-        .then((res) => {})
-        .catch((err) => {
+        .then(res => {})
+        .catch(err => {
           console.log({ err });
         });
   };
   useEffect(() => {
     if (match?.params?.id)
-      getData(`${BASE_URL}etsy/shipment/?id=${match.params.id}`).then(
-        (response) => {
-          setCargoList(response.data);
-        }
-      );
+      getData(`${BASE_URL}etsy/shipment/?id=${match.params.id}`).then(response => {
+        setCargoList(response.data);
+      });
   }, [match?.params?.id]);
 
   const handleUpdateStatus = () => {
     match?.params?.id &&
-      getData(
-        `${BASE_URL}dhl/checking_order_status_update/${match?.params?.id}/`
-      )
-        .then((res) => {
-          getData(`${BASE_URL}etsy/shipment/?id=${match.params.id}`).then(
-            (response) => {
-              setCargoList(response.data);
-            }
-          );
+      getData(`${BASE_URL}dhl/checking_order_status_update/${match?.params?.id}/`)
+        .then(res => {
+          getData(`${BASE_URL}etsy/shipment/?id=${match.params.id}`).then(response => {
+            setCargoList(response.data);
+          });
         })
-        .catch((err) => {
+        .catch(err => {
           console.log({ err });
         });
   };
@@ -114,21 +108,15 @@ export default function CustomizedTables({ match }) {
                   <StyledTableCell align="center" component="th" scope="row">
                     <a href={`/order-details/${row.id}`}>{row.id}</a>
                   </StyledTableCell>
-                  <StyledTableCell align="center">
-                    {row?.receipt_id}
-                  </StyledTableCell>
+                  <StyledTableCell align="center">{row?.receipt_id}</StyledTableCell>
                   <StyledTableCell align="center">{row?.name}</StyledTableCell>
-                  <StyledTableCell align="center">
-                    {row?.item_index}
-                  </StyledTableCell>
+                  <StyledTableCell align="center">{row?.item_index}</StyledTableCell>
                   <StyledTableCell align="center">{row?.type}</StyledTableCell>
-                  <StyledTableCell align="center">
-                    {row?.status}
-                  </StyledTableCell>
+                  <StyledTableCell align="center">{row?.status}</StyledTableCell>
                   <StyledTableCell align="center">
                     {row?.is_label ? (
                       <a
-                        href={`${BASE_URL}media/dhl/shipments/${match.params.id}/${row.id}.pdf`}
+                        href={`${BASE_URL}media/usps/shipments/${match.params.id}/${row.id}.pdf`}
                         target="_blank"
                         rel="noreferrer"
                       >
@@ -145,9 +133,7 @@ export default function CustomizedTables({ match }) {
                   <StyledTableCell align="center">
                     {row?.tracking_code}
                     {row.tracking_code ? (
-                      <button onClick={() => handleSendTrackingCode(row.id)}>
-                        Send
-                      </button>
+                      <button onClick={() => handleSendTrackingCode(row.id)}>Send</button>
                     ) : null}
                   </StyledTableCell>
                 </StyledTableRow>
