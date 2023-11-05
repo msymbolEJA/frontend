@@ -485,7 +485,7 @@ const OrderDetails = ({ match }) => {
           </Button>
           {isLabelExist && (
             <a
-              href={`${BASE_URL}media/dhl/shipments/${rows?.[0]?.receipt_id}/${match.params.id}.pdf`}
+              href={`${BASE_URL}media/usps/shipments/${rows?.[0]?.receipt_id}/${match.params.id}.pdf`}
               target="_blank"
               rel="noreferrer"
             >

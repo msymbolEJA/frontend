@@ -93,6 +93,7 @@ export default function CustomizedTables({ match }) {
               <br /> <button onClick={handleUpdateStatus}>Update</button>
             </StyledTableCell>
             <StyledTableCell align="center">HAS LABEL?</StyledTableCell>
+            <StyledTableCell align="center">Carrier</StyledTableCell>
             <StyledTableCell align="center">TRACKING ID</StyledTableCell>
           </TableRow>
         </TableHead>
@@ -130,6 +131,7 @@ export default function CustomizedTables({ match }) {
                       "N/A"
                     )}
                   </StyledTableCell>
+                  <StyledTableCell align="center">{row?.carrier_name}</StyledTableCell>
                   <StyledTableCell align="center">
                     {row?.tracking_code}
                     {row.tracking_code ? (
