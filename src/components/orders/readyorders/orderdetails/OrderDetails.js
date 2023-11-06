@@ -15,16 +15,14 @@ import OrderDetailsCargoPage from "./OrderDetailsCargoPage";
 import moment from "moment";
 import { FormattedMessage, useIntl } from "react-intl";
 import { AppContext } from "../../../../context/Context";
-import ShopifyColumnHeaders, {
-  ShopifyColumnValues,
-} from "../../allorders/ShopifyColumns";
+import ShopifyColumnHeaders, { ShopifyColumnValues } from "../../allorders/ShopifyColumns";
 import UpdateDetailsTable from "./UpdateDetailsTable";
 
 const NON_SKU = process.env.REACT_APP_NON_SKU === "true";
 const BASE_URL = process.env.REACT_APP_BASE_URL;
 // const BASE_URL_MAPPING = process.env.REACT_APP_BASE_URL_MAPPING;
 
-const StyledTableCell = withStyles((theme) => ({
+const StyledTableCell = withStyles(theme => ({
   head: {
     backgroundColor: "rgb(100, 149, 237)",
     color: theme.palette.common.black,
@@ -34,7 +32,7 @@ const StyledTableCell = withStyles((theme) => ({
   },
 }))(TableCell);
 
-const StyledTableRow = withStyles((theme) => ({
+const StyledTableRow = withStyles(theme => ({
   root: {
     "&:nth-of-type(odd)": {
       backgroundColor: theme.palette.action.hover,
@@ -42,7 +40,7 @@ const StyledTableRow = withStyles((theme) => ({
   },
 }))(TableRow);
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(theme => ({
   root: {
     width: "100%",
     marginTop: 30,
@@ -108,7 +106,7 @@ const OrderDetails = ({ match }) => {
   const getPdf = () => {
     let data = match.params.id;
     getOnePdf(`${BASE_URL}etsy/print_one/`, data)
-      .then((res) => {
+      .then(res => {
         //console.log(res.data.url);
         const link = document.createElement("a");
         link.href = `${res.data.url}`;
@@ -118,46 +116,44 @@ const OrderDetails = ({ match }) => {
         document.body.removeChild(link);
         //console.log(rows[0].id);
       })
-      .catch((error) => {
+      .catch(error => {
         console.log(error);
       });
   };
   useEffect(() => {
     if (receiptId) {
-      fetch(
-        `${BASE_URL}media/dhl/shipments/${receiptId}/${match.params.id}.pdf`
-      )
-        .then((res) => {
+      fetch(`${BASE_URL}media/dhl/shipments/${receiptId}/${match.params.id}.pdf`)
+        .then(res => {
           if (res.status !== 404) {
             setIsLabelExist(true);
           }
         })
-        .catch((err) => console.log("err", err));
+        .catch(err => console.log("err", err));
     }
   }, [match.params.id, receiptId]);
 
   useEffect(() => {
     fetch(`${BASE_URL}media/pdf/${match.params.id}.pdf`)
-      .then((res) => {
+      .then(res => {
         if (res.status !== 404) {
           setIsPdfExist(true);
         }
       })
-      .catch((err) => console.log("err", err));
+      .catch(err => console.log("err", err));
 
     let url = `${BASE_URL}etsy/orders/${match.params.id}/`;
     let urlLogs = `${BASE_URL}etsy/dateLogs/${match.params.id}/`;
     getData(url)
-      .then((res) => {
+      .then(res => {
         setReceiptId(res?.data?.receipt_id);
         setRows([res.data]);
       })
       .then(() => {
-        getData(urlLogs).then((res) => {
+        getData(urlLogs).then(res => {
           setLogs(res.data.results);
         });
       })
-      .catch((err) => {
+      .catch(err => {
         console.log(err);
       });
   }, [match.params.id, refresh]);
@@ -180,14 +176,14 @@ const OrderDetails = ({ match }) => {
   const handleStockChange = (id, data) => {
     // putData(`${BASE_URL_MAPPING}${id}/`, data)
     putData(`${BASE_URL}etsy/mapping/${id}/`, data)
-      .then((response) => { })
-      .catch((error) => {
+      .then(response => {})
+      .catch(error => {
         console.log(error);
       })
       .finally(() => setRefresh(!refresh));
   };
 
-  const formMesFunc = (data) => {
+  const formMesFunc = data => {
     try {
       return formatMessage({
         id: data,
@@ -200,12 +196,12 @@ const OrderDetails = ({ match }) => {
 
   const handleValidateAddress = () => {
     getData(`${BASE_URL}dhl/validate_address/${match.params.id}/`)
-      .then((response) => {
+      .then(response => {
         if (!response?.data || response.data.includes("Not Found")) {
           alert("Address not found");
         } else alert("Address is valid");
       })
-      .catch((error) => {
+      .catch(error => {
         console.log(error);
       })
       .finally(() => setRefresh(!refresh));
@@ -213,30 +209,32 @@ const OrderDetails = ({ match }) => {
 
   const createCargoLabel = () => {
     getData(`${BASE_URL}dhl/createdhlOneLabel_cargo/${match.params.id}/`)
-      .then((response) => {
+      .then(response => {
         if (!response?.data || response.data.includes("Not Found")) {
           alert("Address not found");
         } else alert("Address is valid");
       })
-      .catch((error) => {
+      .catch(error => {
         console.log(error);
       })
       .finally(() => setRefresh(!refresh));
   };
 
-
-    const createCargoLabelUSPS = () => {
-      getData(`${BASE_URL}usps/createuspsOneLabel_cargo/${match.params.id}/`)
-        .then(response => {
-          if (!response?.data || response.data.includes("Not Found")) {
-            alert("Address not found");
-          } else alert("Address is valid");
-        })
-        .catch(error => {
-          console.log(error);
-        })
-        .finally(() => setRefresh(!refresh));
-    };
+  const createCargoLabelUSPS = () => {
+    getData(`${BASE_URL}usps/createuspsOneLabel_cargo/${match.params.id}/`)
+      .then(response => {
+        if (!response?.data || response.data.includes("Not Found")) {
+          alert("Address not found");
+        } else {
+          alert("Address is valid");
+          window.open(response?.data?.link, "_blank");
+        }
+      })
+      .catch(error => {
+        console.log(error);
+      })
+      .finally(() => setRefresh(!refresh));
+  };
 
   return (
     <div>
