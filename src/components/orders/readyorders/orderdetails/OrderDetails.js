@@ -210,7 +210,10 @@ const OrderDetails = ({ match }) => {
   const createCargoLabel = () => {
     getData(`${BASE_URL}dhl/createdhlOneLabel_cargo/${match.params.id}/`)
       .then(response => {
-        if (!response?.data || response.data.includes("Not Found")) {
+        if (
+          !response?.data ||
+          (typeof response?.data === "string" && response?.data?.includes("Not Found"))
+        ) {
           alert("Address not found");
         } else alert("Address is valid");
       })
@@ -221,9 +224,12 @@ const OrderDetails = ({ match }) => {
   };
 
   const createCargoLabelUSPS = () => {
-    getData(`${BASE_URL}usps/createuspsOneLabel_cargo/${match.params.id}/`)
+    getData(`${BASE_URL}usps/createuspsOneLabel_cargo/${match?.params?.id}/`)
       .then(response => {
-        if (!response?.data || response.data.includes("Not Found")) {
+        if (
+          !response?.data ||
+          (typeof response?.data === "string" && response?.data?.includes("Not Found"))
+        ) {
           alert("Address not found");
         } else {
           alert("Address is valid");
