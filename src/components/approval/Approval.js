@@ -1112,22 +1112,20 @@ function App({ history }) {
                     //onKeyDown={(e) => handleRowKeyDown(e, row.id)}
                     style={{
                       pointerEvents:
-                        (loading ||
-                          row["status"] === "in_progress" ||
-                          row["status"] === "ready") &&
-                          process.env.REACT_APP_STORE_NAME !== "Kalpli Serisi" &&
-                          process.env.REACT_APP_STORE_NAME_ORJ !==
-                          "Silveristic" &&
-                          !NON_SKU
+                        (loading || row["status"] === "in_progress" || row["status"] === "ready") &&
+                        process.env.REACT_APP_STORE_NAME !== "Kalpli Serisi" &&
+                        process.env.REACT_APP_STORE_NAME_ORJ !== "Silveristic" &&
+                        !NON_SKU
                           ? "none"
                           : "auto",
                       backgroundColor:
-                        (row.status !== "pending") & (row.approved === false)
+                        !isNaN(row?.qty?.split(" ")?.[0]) && Number(row?.qty?.split(" ")?.[0]) >= 4 
+                          ? "#ee6363"
+                          : (row.status !== "pending") & (row.approved === false)
                           ? "#FF9494"
-                          : row["type"]?.includes("14K") ||
-                            row["explanation"]?.includes("14K")
-                            ? "#ffef8a"
-                            : null,
+                          : row["type"]?.includes("14K") || row["explanation"]?.includes("14K")
+                          ? "#ffef8a"
+                          : null,
                     }}
                   >
                     <FlagAndFavCell
@@ -1141,32 +1139,28 @@ function App({ history }) {
                       }}
                     />
                     <td
-                      onClick={(e) => {
+                      onClick={e => {
                         e.stopPropagation();
                       }}
-                      onBlur={(e) => {
+                      onBlur={e => {
                         e.stopPropagation();
                       }}
                       style={{
                         padding: 5,
                       }}
                     >
-                      {row?.shop === "Shopify" ? (
-                        <ShoppingBasketIcon color="secondary" />
-                      ) : null}
+                      {row?.shop === "Shopify" ? <ShoppingBasketIcon color="secondary" /> : null}
                       <br />
-                      {(row["status"] === "in_progress" ||
-                        row["status"] === "ready") &&
-                        process.env.REACT_APP_STORE_NAME !== "Kalpli Serisi" &&
-                        process.env.REACT_APP_STORE_NAME_ORJ !==
-                        "Silveristic" ? null : (
+                      {(row["status"] === "in_progress" || row["status"] === "ready") &&
+                      process.env.REACT_APP_STORE_NAME !== "Kalpli Serisi" &&
+                      process.env.REACT_APP_STORE_NAME_ORJ !== "Silveristic" ? null : (
                         <>
                           <RepeatIcon
                             style={{
                               color: row["is_repeat"] ? "red" : "grey",
                               cursor: "pointer",
                             }}
-                            onClick={(e) => {
+                            onClick={e => {
                               e.stopPropagation();
                               handlerRepeatChange(e, row.id, row.is_repeat);
                             }}
@@ -1191,13 +1185,9 @@ function App({ history }) {
                           )
                         }
                       /> */}
-                      <OrderStatus
-                        {...{ row, name: "status", onSelectChange }}
-                      />
+                      <OrderStatus {...{ row, name: "status", onSelectChange }} />
                     </td>
-                    <ConstantTableCell
-                      {...{ row, name: "created_date", name3: "buyer" }}
-                    />
+                    <ConstantTableCell {...{ row, name: "created_date", name3: "buyer" }} />
                     {process.env.REACT_APP_STORE_NAME_ORJ === "Silveristic" ? (
                       <EditableTableCell
                         {...{
@@ -1207,7 +1197,10 @@ function App({ history }) {
                         }}
                       />
                     ) : null}
-                    {process.env.REACT_APP_STORE_NAME === "Linen Serisi" || process.env.REACT_APP_STORE_NAME === "Kadife-1" || process.env.REACT_APP_STORE_NAME === "Mina" || process.env.REACT_APP_STORE_NAME === "Güneş Tekstil" ? (
+                    {process.env.REACT_APP_STORE_NAME === "Linen Serisi" ||
+                    process.env.REACT_APP_STORE_NAME === "Kadife-1" ||
+                    process.env.REACT_APP_STORE_NAME === "Mina" ||
+                    process.env.REACT_APP_STORE_NAME === "Güneş Tekstil" ? (
                       <EditableTableCell
                         style={{ fontWeight: "bold" }}
                         {...{
@@ -1307,7 +1300,10 @@ function App({ history }) {
                         name: "explanation",
                         onChange,
                         minWidth:
-                          process.env.REACT_APP_STORE_NAME === "Linen Serisi" || process.env.REACT_APP_STORE_NAME === "Kadife-1" || process.env.REACT_APP_STORE_NAME === "Mina" || process.env.REACT_APP_STORE_NAME === "Güneş Tekstil"
+                          process.env.REACT_APP_STORE_NAME === "Linen Serisi" ||
+                          process.env.REACT_APP_STORE_NAME === "Kadife-1" ||
+                          process.env.REACT_APP_STORE_NAME === "Mina" ||
+                          process.env.REACT_APP_STORE_NAME === "Güneş Tekstil"
                             ? 250
                             : 0,
                       }}
@@ -1319,18 +1315,18 @@ function App({ history }) {
                           process.env.REACT_APP_STORE_NAME_ORJ === "Silveristic"
                             ? "auto"
                             : row.status === "pending"
-                              ? "auto"
-                              : "none",
+                            ? "auto"
+                            : "none",
                         minWidth: 90,
                       }}
-                      onClick={(e) => {
+                      onClick={e => {
                         e.stopPropagation();
                         handleCheckBoxClick(e, row.id, row);
                       }}
-                      onBlur={(e) => {
+                      onBlur={e => {
                         e.stopPropagation();
                       }}
-                      onChange={(e) => {
+                      onChange={e => {
                         e.stopPropagation();
                       }}
                     >
@@ -1339,32 +1335,25 @@ function App({ history }) {
                         disabled={
                           NON_SKU
                             ? !(
-                              (
-                                !!row?.variation_1_value?.replace(
-                                  /\s/g,
-                                  ""
-                                ) &&
-                                !!row?.variation_2_value?.replace(/\s/g, "")
+                                (
+                                  !!row?.variation_1_value?.replace(/\s/g, "") &&
+                                  !!row?.variation_2_value?.replace(/\s/g, "")
+                                )
+                                // &&
+                                // !!row?.variation_1_name?.replace(/\s/g, "") &&
+                                // !!row?.variation_2_name?.replace(/\s/g, "")
                               )
-                              // &&
-                              // !!row?.variation_1_name?.replace(/\s/g, "") &&
-                              // !!row?.variation_2_name?.replace(/\s/g, "")
-                            )
                             : !(
-                              !!row.supplier?.replace(/\s/g, "") &&
-                              !!row.type?.replace(/\s/g, "") &&
-                              !!row.color?.replace(/\s/g, "") &&
-                              !!row.length?.replace(/\s/g, "") &&
-                              !(
-                                row["type"]
-                                  ?.toLowerCase()
-                                  ?.includes("kolye") &&
-                                row["type"]
-                                  ?.toLowerCase()
-                                  ?.includes("imza") &&
-                                !row["image"]
+                                !!row.supplier?.replace(/\s/g, "") &&
+                                !!row.type?.replace(/\s/g, "") &&
+                                !!row.color?.replace(/\s/g, "") &&
+                                !!row.length?.replace(/\s/g, "") &&
+                                !(
+                                  row["type"]?.toLowerCase()?.includes("kolye") &&
+                                  row["type"]?.toLowerCase()?.includes("imza") &&
+                                  !row["image"]
+                                )
                               )
-                            )
                         }
                         color="primary"
                         inputProps={{ "aria-labelledby": labelId }}
@@ -1376,7 +1365,10 @@ function App({ history }) {
                         name: "personalization",
                         onChange,
                         minWidth:
-                          process.env.REACT_APP_STORE_NAME === "Linen Serisi" || process.env.REACT_APP_STORE_NAME === "Kadife-1" || process.env.REACT_APP_STORE_NAME === "Mina" || process.env.REACT_APP_STORE_NAME === "Güneş Tekstil"
+                          process.env.REACT_APP_STORE_NAME === "Linen Serisi" ||
+                          process.env.REACT_APP_STORE_NAME === "Kadife-1" ||
+                          process.env.REACT_APP_STORE_NAME === "Mina" ||
+                          process.env.REACT_APP_STORE_NAME === "Güneş Tekstil"
                             ? 250
                             : 0,
                       }}
@@ -1387,19 +1379,22 @@ function App({ history }) {
                         name: "message_from_buyer",
                         onChange,
                         minWidth:
-                          process.env.REACT_APP_STORE_NAME === "Linen Serisi" || process.env.REACT_APP_STORE_NAME === "Kadife-1" || process.env.REACT_APP_STORE_NAME === "Mina" || process.env.REACT_APP_STORE_NAME === "Güneş Tekstil"
+                          process.env.REACT_APP_STORE_NAME === "Linen Serisi" ||
+                          process.env.REACT_APP_STORE_NAME === "Kadife-1" ||
+                          process.env.REACT_APP_STORE_NAME === "Mina" ||
+                          process.env.REACT_APP_STORE_NAME === "Güneş Tekstil"
                             ? 150
                             : 0,
                       }}
                     />
-                    {user !== "DrMel" && process.env.REACT_APP_STORE_NAME !== "Mina" && process.env.REACT_APP_STORE_NAME !== "Linen Serisi" ? (
-                      <EditableTableCell
-                        {...{ row, name: "gift_message", onChange }}
-                      />
+                    {user !== "DrMel" &&
+                    process.env.REACT_APP_STORE_NAME !== "Mina" &&
+                    process.env.REACT_APP_STORE_NAME !== "Linen Serisi" ? (
+                      <EditableTableCell {...{ row, name: "gift_message", onChange }} />
                     ) : null}
                     <EditableTableCell {...{ row, name: "note", onChange }} />
                     <td
-                      onClick={(e) => {
+                      onClick={e => {
                         e.stopPropagation();
                       }}
                       style={{ padding: 10 }}
@@ -1412,7 +1407,7 @@ function App({ history }) {
                           fileSelectedHandler,
                           selectId,
                           selectedRowId,
-                          removeFile
+                          removeFile,
                         }}
                       />
                     </td>
