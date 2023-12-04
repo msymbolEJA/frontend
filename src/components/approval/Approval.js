@@ -1118,7 +1118,7 @@ function App({ history }) {
                     //onKeyDown={(e) => handleRowKeyDown(e, row.id)}
                     style={{
                       pointerEvents:
-                        (loading || row["status"] === "in_progress" || row["status"] === "ready") &&
+                        loading &&
                         process.env.REACT_APP_STORE_NAME !== "Kalpli Serisi" &&
                         process.env.REACT_APP_STORE_NAME_ORJ !== "Silveristic" &&
                         !NON_SKU
@@ -1150,6 +1150,8 @@ function App({ history }) {
                         style={{
                           padding: 10,
                           minWidth: 90,
+                          pointerEvents: "auto",
+                          background: row?.tracking_code_orders ? "#00ee00" : "",
                         }}
                         onClick={e => {
                           e.stopPropagation();
@@ -1481,7 +1483,7 @@ function App({ history }) {
         </Table>
       </TableContainer>
       <ToastContainer style={{ color: "black" }} />
-      {selectedForPackage?.length && (
+      {selectedForPackage?.length ? (
         <Box component={Paper} elevation={2} className={classes.package}>
           {selectedForPackage?.length} Items will be packaged{" "}
           <Button
@@ -1494,7 +1496,7 @@ function App({ history }) {
             Package
           </Button>
         </Box>
-      )}
+      ) : null}
     </Paper>
   );
 }
