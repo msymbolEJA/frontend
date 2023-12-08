@@ -524,7 +524,7 @@ function App({ history }) {
 
   const handleSelectAllClickForPackage = event => {
     if (event.target.checked) {
-      const newSelecteds = rows?.map(row => row?.id);
+      const newSelecteds = rows?.slice(0, 20).map(row => row?.id);
       setSelectedForPackage(newSelecteds);
       return;
     }
@@ -536,17 +536,17 @@ function App({ history }) {
     let newSelected = [];
 
     if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selectedForPackage, id);
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selectedForPackage.slice(1));
-    } else if (selectedIndex === selectedForPackage?.length - 1) {
-      newSelected = newSelected.concat(selectedForPackage.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(
-        selectedForPackage.slice(0, selectedIndex),
-        selectedForPackage.slice(selectedIndex + 1),
-      );
+      newSelected = selectedForPackage.slice().concat(id);
+
+      if (newSelected.length > 20) {
+        newSelected.shift();
+      }
+    } else {
+      newSelected = selectedForPackage
+        .slice(0, selectedIndex)
+        .concat(selectedForPackage.slice(selectedIndex + 1));
     }
+
     setSelectedForPackage(newSelected);
   };
 
@@ -891,9 +891,9 @@ function App({ history }) {
                   <br />
                   <Checkbox
                     indeterminate={
-                      selectedForPackage?.length > 0 && selectedForPackage?.length < rows?.length
+                      selectedForPackage?.length > 0 && selectedForPackage?.length < 20
                     }
-                    checked={rows?.length > 0 && selectedForPackage?.length === rows?.length}
+                    checked={rows?.length > 0 && selectedForPackage?.length === 20}
                     color="primary"
                     onChange={handleSelectAllClickForPackage}
                     inputProps={{ "aria-label": "select all" }}
