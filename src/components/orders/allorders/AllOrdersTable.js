@@ -160,27 +160,27 @@ function AllOrdersTable() {
     getData(`${BASE_URL}etsy/get_mapping_update_date/`)
       .then((response) => {
         const l = localStorage.getItem(
-          `${localStoragePrefix}-in_progress-${PAGE_ROW_NUMBER || 2500
+          `${localStoragePrefix}-in_progress-${PAGE_ROW_NUMBER || 50
           }-0-last_updated`
         );
         if (response.data.last_updated !== l || bypass) {
           getData(
-            `${BASE_URL}etsy/orders/?status=in_progress&limit=${2500}&offset=0`
+            `${BASE_URL}etsy/orders/?status=in_progress&limit=${50}&offset=0`
           )
             .then((response) => {
               const o = response?.data?.results?.length
                 ? response?.data?.results
                 : [];
               localStorage.setItem(
-                `${localStoragePrefix}-in_progress-${2500}-0`,
+                `${localStoragePrefix}-in_progress-${50}-0`,
                 JSON.stringify(o)
               );
               localStorage.setItem(
-                `${localStoragePrefix}-in_progress-${2500}-0-last_updated`,
+                `${localStoragePrefix}-in_progress-${50}-0-last_updated`,
                 response.data.last_updated
               );
               localStorage.setItem(
-                `${localStoragePrefix}-in_progress-${2500}-0-count`,
+                `${localStoragePrefix}-in_progress-${50}-0-count`,
                 response?.data?.results?.length
               );
             })
@@ -265,7 +265,7 @@ function AllOrdersTable() {
 
   useEffect(() => {
     if (!filters?.status) {
-      history.push("/all-orders?limit=2500&offset=0");
+      history.push("/all-orders?limit=50&offset=0");
       return;
     }
     if (filters?.search) return;
@@ -427,7 +427,7 @@ function AllOrdersTable() {
       .then((response) => {
         console.log("response", response);
         localStorage.removeItem(
-          `${localStoragePrefix}-in_progress-${PAGE_ROW_NUMBER || 2500
+          `${localStoragePrefix}-in_progress-${PAGE_ROW_NUMBER || 50
           }-0-last_updated`
         );
         getOrdersInProgress();

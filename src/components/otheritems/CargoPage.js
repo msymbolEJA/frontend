@@ -96,10 +96,10 @@ const CargoPage = ({ getListFunc, ids, setRefreshTable, countryFilter }) => {
         toastErrorNotify(response.data.Failed);
       })
       .finally(() => {
-        localStorage.removeItem(`${localStoragePrefix}-ready-2500-0`);
-        localStorage.removeItem(`${localStoragePrefix}-ready-2500-0-count`);
+        localStorage.removeItem(`${localStoragePrefix}-ready-50-0`);
+        localStorage.removeItem(`${localStoragePrefix}-ready-50-0-count`);
         localStorage.removeItem(
-          `${localStoragePrefix}-ready-2500-0-last_updated`
+          `${localStoragePrefix}-ready-50-0-last_updated`
         );
         setRefreshTable((p) => !p);
       });

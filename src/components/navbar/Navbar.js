@@ -564,7 +564,7 @@ export default function MenuAppBar() {
                     <MenuItem>
                       <a
                         className={classes.hrefStyle}
-                        href={`/all-orders?status=pending&limit=2500&offset=0/`}
+                        href={`/all-orders?status=pending&limit=50&offset=0/`}
                       >
                         Orders
                       </a>
@@ -572,7 +572,7 @@ export default function MenuAppBar() {
                     <MenuItem>
                       <a
                         className={classes.hrefStyle}
-                        href={`/approval?status=pending&limit=2500&offset=0/`}
+                        href={`/approval?status=pending&limit=50&offset=0/`}
                       >
                         Admin
                       </a>
@@ -580,7 +580,7 @@ export default function MenuAppBar() {
                     <MenuItem>
                       <a
                         className={classes.hrefStyle}
-                        href={`/cargo-list?status=pending&limit=2500&offset=0/`}
+                        href={`/cargo-list?status=pending&limit=50&offset=0/`}
                       >
                         Cargo List
                       </a>

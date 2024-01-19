@@ -50,7 +50,7 @@ import { AppContext } from "../../context/Context";
 const BASE_URL = process.env.REACT_APP_BASE_URL;
 // const BASE_URL_MAPPING = process.env.REACT_APP_BASE_URL_MAPPING;
 const NON_SKU = process.env.REACT_APP_NON_SKU === "true" || false;
-const PAGE_ROW_NUMBER = process.env.REACT_APP_PAGE_ROW_NUMBER || 25;
+const PAGE_ROW_NUMBER = process.env.REACT_APP_PAGE_ROW_NUMBER || 50;
 const STORE_ORJ = process.env.REACT_APP_STORE_NAME_ORJ;
 
 const StyledMenu = withStyles({})(props => (
@@ -165,17 +165,38 @@ function App({ history }) {
   const [refreshTable, setRefreshTable] = useState(false);
   const { user } = useContext(AppContext);
 
-  const getListFunc = () => {
+  const [lastResponse, setLastResponse] = useState(null);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      console.log("lastResponse?.next", lastResponse?.next);
+      if (window.innerHeight + window.scrollY >= document.body.offsetHeight && lastResponse?.next) {
+        console.log("Scrolled to the bottom!");
+        console.log("window.innerHeight + window.scrollY", window.innerHeight + window.scrollY);
+        getListFunc(lastResponse?.next);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [lastResponse]);
+
+  const getListFunc = (link, limit, offset) => {
     setloading(true);
     getData(
-      `${BASE_URL}etsy/mapping/?${filters?.status ? `status=${filters?.status}` : ""}&is_repeat=${
-        filters?.is_repeat
-      }&ordering=${filters?.ordering || "-id"}&limit=${filters?.limit || 0}&offset=${
-        filters?.offset
-      }`,
+      link ||
+        `${BASE_URL}etsy/mapping/?${filters?.status ? `status=${filters?.status}` : ""}&is_repeat=${
+          filters?.is_repeat
+        }&ordering=${filters?.ordering || "-id"}&limit=${limit || filters?.limit || 0}&offset=${
+          offset || filters?.offset
+        }`,
     )
       .then(response => {
         const t = response?.data?.results?.length ? response?.data?.results : [];
+        console.log("response?.data", response?.data);
         localStorage.setItem(
           `${localStoragePrefix}-mapping-${selectedTag}-${filters.limit}-${filters.offset}`,
           JSON.stringify(t),
@@ -184,7 +205,8 @@ function App({ history }) {
           `${localStoragePrefix}-mapping-${selectedTag}-${filters.limit}-${filters.offset}-count`,
           response?.data?.count || 0,
         );
-        setRows(t);
+        setRows([...rows, ...t]);
+        setLastResponse(response?.data);
       })
       .catch(error => {
         localStorage.setItem(
@@ -297,7 +319,7 @@ function App({ history }) {
       })
       .finally(() => {
         if (filters?.search) {
-          history.push(`/approval?search=${filters?.search}&limit=${25}&offset=${0}`);
+          history.push(`/approval?search=${filters?.search}&limit=${50}&offset=${0}`);
         } else getListFunc();
         setloading(false);
         setRefreshTable(!refreshTable);
@@ -425,7 +447,7 @@ function App({ history }) {
       .then(res => {
         toastWarnNotify("Selected 'PENDING' orders are approved");
         if (filters?.search) {
-          history.push(`/approval?search=${filters?.search}&limit=${25}&offset=${0}`);
+          history.push(`/approval?search=${filters?.search}&limit=${50}&offset=${0}`);
         } else getListFunc();
         setSelected([]);
       })
@@ -454,18 +476,18 @@ function App({ history }) {
     let newUrl = "";
     switch (statu) {
       case "all_orders":
-        newUrl += `limit=${25}&offset=${0}`;
+        newUrl += `limit=${50}&offset=${0}`;
         break;
       case "repeat":
         newUrl += `is_repeat=true&ordering=-last_updated&limit=${
-          PAGE_ROW_NUMBER || 25
+          PAGE_ROW_NUMBER || 50
         }&offset=${0}`; //&limit=${rowsPerPage}&offset=${page * rowsPerPage}
         break;
       case "shipped":
-        newUrl += `status=${statu}&limit=${25}&offset=${0}`; //&limit=${rowsPerPage}&offset=${page * rowsPerPage}
+        newUrl += `status=${statu}&limit=${50}&offset=${0}`; //&limit=${rowsPerPage}&offset=${page * rowsPerPage}
         break;
       default: //&limit=${rowsPerPage}&offset=${page * rowsPerPage}
-        newUrl += `status=${statu}&limit=${PAGE_ROW_NUMBER || 25}&offset=${0}`;
+        newUrl += `status=${statu}&limit=${PAGE_ROW_NUMBER || 50}&offset=${0}`;
         break;
     }
     history.push(`/approval?&${newUrl}`);
@@ -601,8 +623,8 @@ function App({ history }) {
   useEffect(() => {
     if (filters?.search) {
       globalSearch(
-        // `${BASE_URL_MAPPING}?search=${filters?.search}&limit=${25}&offset=${
-        `${BASE_URL}etsy/mapping/?search=${filters?.search}&limit=${25}&offset=${page * 25}`,
+        // `${BASE_URL_MAPPING}?search=${filters?.search}&limit=${50}&offset=${
+        `${BASE_URL}etsy/mapping/?search=${filters?.search}&limit=${50}&offset=${page * 50}`,
       )
         .then(response => {
           setRows(response.data.results);
@@ -617,7 +639,7 @@ function App({ history }) {
 
   const searchHandler = (value, keyCode) => {
     if (keyCode === 13 && value) {
-      history.push(`/approval?search=${value}&limit=${25}&offset=${0}`);
+      history.push(`/approval?search=${value}&limit=${50}&offset=${0}`);
     }
   };
 
