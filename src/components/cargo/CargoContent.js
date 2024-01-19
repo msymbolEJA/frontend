@@ -117,7 +117,9 @@ export default function CustomizedTables({ match }) {
                   <StyledTableCell align="center">
                     {row?.is_label ? (
                       <a
-                        href={`${BASE_URL}media/usps/shipments/${match.params.id}/${row.id}.pdf`}
+                        href={`${BASE_URL}media/${
+                          process.env.REACT_APP_STORE_NAME === "Yildiz Serisi" ? "usps" : "dhl"
+                        }/shipments/${match.params.id}/${row.id}.pdf`}
                         target="_blank"
                         rel="noreferrer"
                       >

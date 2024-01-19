@@ -186,16 +186,29 @@ export default function CustomizedTables() {
       .finally(() => setSelectedItem(null));
   };
 
-  const printHandler = id => {
-    if (id)
-      getData(`${BASE_URL}usps/createuspsBulkLabel_cargo/${id}/`)
-        .then(response => {
-          window?.location.reload(false);
-        })
-        .catch(({ response }) => {
-          console.log(response.data.Failed);
-        })
-        .finally(() => {});
+
+  const printHandler = (id, cargoType) => {
+    if (id) {
+      if (cargoType === "DHL") {
+        getData(`${BASE_URL}dhl/createdhlBulkLabel_cargo/${id}/`)
+          .then(response => {
+            window?.location.reload(false);
+          })
+          .catch(({ response }) => {
+            console.log(response.data.Failed);
+          })
+          .finally(() => {});
+      } else if (cargoType === "USPS") {
+        getData(`${BASE_URL}usps/createuspsBulkLabel_cargo/${id}/`)
+          .then(response => {
+            window?.location.reload(false);
+          })
+          .catch(({ response }) => {
+            console.log(response.data.Failed);
+          })
+          .finally(() => {});
+      }
+    }
   };
 
   const handleConfirmModal = (e, id, action) => {
@@ -367,12 +380,30 @@ export default function CustomizedTables() {
                             variant="contained"
                             color="primary"
                             className={classes.print}
-                            onClick={() => printHandler(row.id)}
+                            onClick={() =>
+                              printHandler(
+                                row.id,
+                                process.env.REACT_APP_STORE_NAME === "Yildiz Serisi"
+                                  ? "USPS"
+                                  : "DHL",
+                              )
+                            }
                           >
-                            <FormattedMessage id="getLabel" defaultMessage="Get Label USPS" />
+                            <FormattedMessage
+                              id="getLabel"
+                              defaultMessage={`Get Label ${
+                                process.env.REACT_APP_STORE_NAME === "Yildiz Serisi"
+                                  ? "USPS"
+                                  : "DHL"
+                              }`}
+                            />
                           </Button>
                         ) : (
-                          <a href={`${BASE_URL}media/usps/${row.id}.zip`}>
+                          <a
+                            href={`${BASE_URL}media/${
+                              process.env.REACT_APP_STORE_NAME === "Yildiz Serisi" ? "usps" : "dhl"
+                            }/${row.id}.zip`}
+                          >
                             <DownloadFile />
                           </a>
                         )}

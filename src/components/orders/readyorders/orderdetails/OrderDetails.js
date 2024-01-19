@@ -215,7 +215,10 @@ const OrderDetails = ({ match }) => {
           (typeof response?.data === "string" && response?.data?.includes("Not Found"))
         ) {
           alert("Address not found");
-        } else alert("Address is valid");
+        } else {
+          alert("Address is valid");
+          window.open(response?.data?.link, "_blank");
+        }
       })
       .catch(error => {
         console.log(error);
@@ -489,7 +492,9 @@ const OrderDetails = ({ match }) => {
           </Button>
           {isLabelExist && (
             <a
-              href={`${BASE_URL}media/usps/shipments/${rows?.[0]?.receipt_id}/${match.params.id}.pdf`}
+              href={`${BASE_URL}media/${
+                process.env.REACT_APP_STORE_NAME === "Yildiz Serisi" ? "usps" : "dhl"
+              }/shipments/${rows?.[0]?.receipt_id}/${match.params.id}.pdf`}
               target="_blank"
               rel="noreferrer"
             >
