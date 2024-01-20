@@ -166,23 +166,33 @@ function App({ history }) {
   const { user } = useContext(AppContext);
 
   const [lastResponse, setLastResponse] = useState(null);
+  const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
-      console.log("lastResponse?.next", lastResponse?.next);
-      if (window.innerHeight + window.scrollY >= document.body.offsetHeight && lastResponse?.next) {
-        console.log("Scrolled to the bottom!");
-        console.log("window.innerHeight + window.scrollY", window.innerHeight + window.scrollY);
-        getListFunc(lastResponse?.next);
+      if (!hasScrolledToBottom) {
+        const scrollThreshold = 0.7; // Set your threshold (70% in this example)
+
+        const scrollPosition = window.innerHeight + window.scrollY;
+        const scrollableHeight = document.body.offsetHeight;
+        const scrollableThreshold = scrollableHeight * scrollThreshold;
+
+        if (scrollPosition >= scrollableThreshold && lastResponse?.next) {
+          console.log("Scrolled to the bottom!");
+          console.log("window.innerHeight + window.scrollY", scrollPosition);
+          setHasScrolledToBottom(true);
+          getListFunc(lastResponse.next);
+
+          // Set the flag to true to ensure it only triggers once
+        }
       }
     };
-
     window.addEventListener("scroll", handleScroll);
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
-  }, [lastResponse]);
+  }, [hasScrolledToBottom, lastResponse]);
 
   const getListFunc = (link, limit, offset) => {
     setloading(true);
@@ -207,6 +217,8 @@ function App({ history }) {
         );
         setRows([...rows, ...t]);
         setLastResponse(response?.data);
+
+        setHasScrolledToBottom(false);
       })
       .catch(error => {
         localStorage.setItem(

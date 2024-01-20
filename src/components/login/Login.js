@@ -21,7 +21,7 @@ import FormControl from "@material-ui/core/FormControl";
 import NativeSelect from "@material-ui/core/NativeSelect";
 
 const BASE_URL = process.env.REACT_APP_BASE_URL;
-const PAGE_ROW_NUMBER = process.env.REACT_APP_PAGE_ROW_NUMBER || 25;
+const PAGE_ROW_NUMBER = process.env.REACT_APP_PAGE_ROW_NUMBER || 50;
 
 const validationSchema = yup.object({
   username: yup
@@ -31,7 +31,7 @@ const validationSchema = yup.object({
   password: yup.string("Enter your password").required("Password is required"),
 });
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(theme => ({
   root: {
     height: "100vh",
   },
@@ -39,9 +39,7 @@ const useStyles = makeStyles((theme) => ({
     backgroundImage: "url(https://picsum.photos/800/600)",
     backgroundRepeat: "no-repeat",
     backgroundColor:
-      theme.palette.type === "light"
-        ? theme.palette.grey[50]
-        : theme.palette.grey[900],
+      theme.palette.type === "light" ? theme.palette.grey[50] : theme.palette.grey[900],
     backgroundSize: "cover",
     backgroundPosition: "center",
   },
@@ -113,10 +111,10 @@ export default function Login() {
       password: "",
     },
     validationSchema: validationSchema,
-    onSubmit: (values) => {
+    onSubmit: values => {
       setLinProgress(true);
       postAuthData(`${BASE_URL}account/login/`, values)
-        .then((response) => {
+        .then(response => {
           // console.log({ response });
           setUser(response?.data);
           const token = response?.data?.access;
@@ -134,9 +132,7 @@ export default function Login() {
               response?.data?.role === "workshop_designer2"
             ) {
               history.push(
-                `/all-orders?&status=in_progress&limit=${
-                  PAGE_ROW_NUMBER || 25
-                }&offset=0`
+                `/all-orders?&status=in_progress&limit=${PAGE_ROW_NUMBER || 50}&offset=0`,
               );
             } else {
               history.push("/");
@@ -163,7 +159,7 @@ export default function Login() {
     },
   });
 
-  const handleLangChange = (e) => {
+  const handleLangChange = e => {
     setLang(e.target.value);
   };
 
@@ -267,10 +263,7 @@ export default function Login() {
             <Grid container>
               <Grid item xs>
                 <Link href="/forgot" variant="body2">
-                  <FormattedMessage
-                    id="forgotPassword"
-                    defaultMessage="Forgot password?"
-                  />
+                  <FormattedMessage id="forgotPassword" defaultMessage="Forgot password?" />
                 </Link>
               </Grid>
             </Grid>

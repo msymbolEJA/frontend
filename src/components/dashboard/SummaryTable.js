@@ -16,9 +16,9 @@ import {
 } from "@material-ui/core";
 import { FormattedMessage } from "react-intl";
 
-const PAGE_ROW_NUMBER = process.env.REACT_APP_PAGE_ROW_NUMBER || 25;
+const PAGE_ROW_NUMBER = process.env.REACT_APP_PAGE_ROW_NUMBER || 50;
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(theme => ({
   root: {
     flexGrow: 1,
     marginTop: 15,
@@ -95,11 +95,8 @@ export default function SummaryTable({
 
   return (
     <Grid item xs={12} md={6} className={classes.root}>
-      <Paper
-        className={classes.paper}
-        onClick={title === "orders" ? null : handleClick}
-      >
-        <div className={classes.titleStyle} onClick={(e) => handleClick(e)}>
+      <Paper className={classes.paper} onClick={title === "orders" ? null : handleClick}>
+        <div className={classes.titleStyle} onClick={e => handleClick(e)}>
           {icon}
           <h3 style={{ display: "inline", marginLeft: "0.5rem" }}>
             <FormattedMessage id={title} defaultMessage={title} /> ({total})
@@ -121,12 +118,7 @@ export default function SummaryTable({
               <TableBody>
                 {data === "noOrders" ? (
                   <TableRow>
-                    <TableCell
-                      colSpan="2"
-                      align="center"
-                      component="th"
-                      scope="row"
-                    >
+                    <TableCell colSpan="2" align="center" component="th" scope="row">
                       <FormattedMessage
                         id="everythingOnSchedule"
                         defaultMessage="EVERYTHING IS ON SCHEDULE"
@@ -143,9 +135,7 @@ export default function SummaryTable({
                           ? history.push(
                               `/all-orders?&status=${item.cell1
                                 .toLowerCase()
-                                .replace(" ", "_")}&limit=${
-                                PAGE_ROW_NUMBER || 25
-                              }&offset=0`
+                                .replace(" ", "_")}&limit=${PAGE_ROW_NUMBER || 50}&offset=0`,
                             )
                           : null
                       }
@@ -159,9 +149,7 @@ export default function SummaryTable({
                                 : item.cell1.toLowerCase()
                             }
                             defaultMessage={
-                              item.cell1.toLowerCase() === "awaiting"
-                                ? "APPROVED"
-                                : item.cell1
+                              item.cell1.toLowerCase() === "awaiting" ? "APPROVED" : item.cell1
                             }
                           />
                         ) : (
@@ -177,9 +165,7 @@ export default function SummaryTable({
               <tbody>
                 <tr>
                   <td colSpan="2" style={{ display: "table-cell" }}>
-                    <CircularProgress
-                      style={{ marginTop: "1rem", marginBottom: "1rem" }}
-                    />
+                    <CircularProgress style={{ marginTop: "1rem", marginBottom: "1rem" }} />
                   </td>
                 </tr>
               </tbody>
