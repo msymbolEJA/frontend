@@ -249,6 +249,7 @@ function AllOrdersTable() {
             filters?.status === "in_progress"
               ? t.filter(item => !currentBarcodeList.includes(item.id))
               : t;
+
           setRows([...rows, ...ft]);
           setLastResponse(response?.data);
 
@@ -608,16 +609,22 @@ function AllOrdersTable() {
     )
       return;
     putData(`${BASE_URL}etsy/mapping/${id}/`, data)
-      .then(response => {})
+      .then(response => {
+        toastSuccessNotify("Success");
+      })
       .catch(error => {
         console.log(error);
+        alert("An error occurred. Please try again");
+        toastErrorNotify("Failed");
       })
       .finally(() => {
         if (filters?.search) {
           history.push(`/all-orders?search=${filters?.search}&limit=${50}&offset=${0}`);
-        } else getListFunc();
+        } else {
+          // getListFunc();
+        }
         setloading(false);
-        setRefreshTable(!refreshTable);
+        // setRefreshTable(!refreshTable);
       });
   };
 

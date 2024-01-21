@@ -36,7 +36,7 @@ import OrderStatus from "../tableitems/CustomSelectCell";
 import UploadFile from "../tableitems/UploadFile";
 import { putImage, postData, removeImage } from "../../helper/PostData";
 import { getQueryParams } from "../../helper/getQueryParams";
-import { toastWarnNotify } from "../otheritems/ToastNotify";
+import { toastErrorNotify, toastSuccessNotify, toastWarnNotify } from "../otheritems/ToastNotify";
 import ConstantTableCell from "../tableitems/ConstantTableCell";
 import FlagAndFavCell from "./FlagAndFavCell";
 import EditableTableCell from "../tableitems/EditableTableCell";
@@ -325,16 +325,22 @@ function App({ history }) {
       return;
     setloading(true);
     putData(`${BASE_URL}etsy/mapping/${id}/`, data)
-      .then(response => {})
+      .then(response => {
+        toastSuccessNotify("Success");
+      })
       .catch(error => {
         console.log(error);
+        alert("An error occurred. Please try again");
+        toastErrorNotify("Failed");
       })
       .finally(() => {
         if (filters?.search) {
           history.push(`/approval?search=${filters?.search}&limit=${50}&offset=${0}`);
-        } else getListFunc();
+        } else {
+          // getListFunc();
+        }
         setloading(false);
-        setRefreshTable(!refreshTable);
+        // setRefreshTable(!refreshTable);
       });
   };
 
