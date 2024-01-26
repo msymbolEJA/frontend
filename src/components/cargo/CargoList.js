@@ -20,6 +20,7 @@ import api from "../../helper/api";
 import ConfirmDialog from "../otheritems/ConfirmModal";
 import { toastErrorNotify, toastSuccessNotify } from "../otheritems/ToastNotify";
 import EditableTableCell from "./EditableTableCell";
+import { getQueryParams } from "../../helper/getQueryParams";
 
 const BASE_URL = process.env.REACT_APP_BASE_URL;
 
@@ -90,32 +91,83 @@ export default function CustomizedTables() {
       localStorage.getItem("localRole") === "null") &&
     !["asya", "umraniye"].includes(localStorage.getItem("workshop")?.toLowerCase());
   const classes = useStyles();
-  const [cargoList, setCargoList] = useState();
+  const [cargoList, setCargoList] = useState([]);
   const history = useHistory();
   const [getSupplier, setGetSupplier] = useState("");
   const [selectedItem, setSelectedItem] = useState();
   const { isAdmin, user } = useContext(AppContext);
+  const [page, setPage] = useState(0);
 
   let localRole = localStorage.getItem("localRole");
 
   const userRole = user?.role || localRole;
+  const filters = getQueryParams();
 
-  const getListFunc = useCallback(() => {
-    getData(`${BASE_URL}etsy/cargo_list/${getSupplier}`).then(response => {
-      let dataObj = response.data;
+  const [lastResponse, setLastResponse] = useState(null);
+  const [isMore, setIsMore] = useState(true);
+  const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!hasScrolledToBottom) {
+        const scrollThreshold = 0.7; // Set your threshold (70% in this example)
+
+        const scrollPosition = window.innerHeight + window.scrollY;
+        const scrollableHeight = document.body.offsetHeight;
+        const scrollableThreshold = scrollableHeight * scrollThreshold;
+
+        if (scrollPosition >= scrollableThreshold && lastResponse?.next && isMore) {
+          setHasScrolledToBottom(true);
+          getListFunc(lastResponse?.next);
+
+          // Set the flag to true to ensure it only triggers once
+        }
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [hasScrolledToBottom, lastResponse]);
+
+  const getListFunc = link => {
+    getData(
+      link ||
+        `${BASE_URL}etsy/shipment_content_view/?limit=${filters?.limit || 0}&offset=${
+          filters?.offset
+        }`,
+    ).then(response => {
+      let dataObj = response?.data?.results;
       const formattedData = dataObj
         ? Object.keys(dataObj).flatMap(key => {
-            return Object.keys(dataObj[key]).map(key2 => ({
-              ...dataObj[key][key2],
-              refNumber: key2,
-              supplier: isBeyazit ? "" : key,
-            }));
+            const shipmentData = dataObj[key];
+            return {
+              ...shipmentData,
+              refNumber: key,
+            };
           })
         : [];
-      setCargoList(formattedData.sort((a, b) => b.id - a.id));
-    });
-  }, [getSupplier]);
 
+      const clist = cargoList || [];
+
+      // Remove duplicates based on the "id" property
+
+      const l = Object.keys(dataObj)?.length;
+
+      if (l) {
+        console.log("clist", cargoList);
+        console.log("formattedData", formattedData);
+        const test = clist.concat([...formattedData]);
+        console.log("test", test);
+
+        setCargoList(test);
+        setLastResponse(response?.data);
+        setHasScrolledToBottom(false);
+      }
+      if (l !== 10) setIsMore(false);
+    });
+  };
   useEffect(() => {
     getListFunc();
     // eslint-disable-next-line
@@ -185,7 +237,6 @@ export default function CustomizedTables() {
       })
       .finally(() => setSelectedItem(null));
   };
-
 
   const printHandler = (id, cargoType) => {
     if (id) {
@@ -354,7 +405,7 @@ export default function CustomizedTables() {
                         </span>
                       ))}
                     </StyledTableCell>
-                    <StyledTableCell align="center">{row.content.length}</StyledTableCell>
+                    <StyledTableCell align="center">{row?.content.length}</StyledTableCell>
                     <StyledTableCell align="center">
                       {moment.utc(row.shipment_date).local().format("MM-DD-YY HH:mm")}
                     </StyledTableCell>

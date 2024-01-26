@@ -246,11 +246,13 @@ export default function MenuAppBar() {
       : "awaiting";
   // console.log("Navbar newStatu", newStatu);
 
-  const handleClick = e => {
+  const handleClick = (e, cargoList = false) => {
     // const newStatu = getFirstStatu();
     // console.log("newStatu", newStatu);
     history.push(
-      `/${e.currentTarget.id}?status=${newStatu}&limit=${PAGE_ROW_NUMBER || 50}&offset=0`,
+      `/${e.currentTarget.id}?status=${newStatu}&limit=${
+        cargoList ? 10 : PAGE_ROW_NUMBER || 50
+      }&offset=0`,
     );
     setAnchorEl(null);
   };
@@ -401,7 +403,7 @@ export default function MenuAppBar() {
                       : classes.button
                   }
                   startIcon={mobileView ? null : <LocalShippingIcon />}
-                  onClick={e => handleClick(e)}
+                  onClick={e => handleClick(e, true)}
                 >
                   <FormattedMessage id="cargoList" defaultMessage="Cargo List" />
                 </Button>
