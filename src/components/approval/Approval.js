@@ -178,8 +178,6 @@ function App({ history }) {
         const scrollableThreshold = scrollableHeight * scrollThreshold;
 
         if (scrollPosition >= scrollableThreshold && lastResponse?.next) {
-          console.log("Scrolled to the bottom!");
-          console.log("window.innerHeight + window.scrollY", scrollPosition);
           setHasScrolledToBottom(true);
           getListFunc(lastResponse.next);
 
@@ -206,7 +204,6 @@ function App({ history }) {
     )
       .then(response => {
         const t = response?.data?.results?.length ? response?.data?.results : [];
-        console.log("response?.data", response?.data);
         localStorage.setItem(
           `${localStoragePrefix}-mapping-${selectedTag}-${filters.limit}-${filters.offset}`,
           JSON.stringify(t),

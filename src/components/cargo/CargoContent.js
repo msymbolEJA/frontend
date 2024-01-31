@@ -11,6 +11,7 @@ import Paper from "@material-ui/core/Paper";
 import { getData } from "../../helper/PostData";
 import Typography from "@material-ui/core/Typography";
 import ContactMailIcon from "@material-ui/icons/ContactMail";
+import { getQueryParams } from "../../helper/getQueryParams";
 const BASE_URL = process.env.REACT_APP_BASE_URL;
 
 const StyledTableCell = withStyles(theme => ({
@@ -48,6 +49,11 @@ const useStyles = makeStyles({
 export default function CustomizedTables({ match }) {
   const classes = useStyles();
   const [cargoList, setCargoList] = useState([]);
+
+  const [lastResponse, setLastResponse] = useState(null);
+  const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
+  const filters = getQueryParams();
+
   const handleSendTrackingCode = rowId => {
     rowId &&
       getData(`${BASE_URL}dhl/send_tracking_code_by_one/${rowId}/`)
@@ -56,12 +62,53 @@ export default function CustomizedTables({ match }) {
           console.log({ err });
         });
   };
+
   useEffect(() => {
-    if (match?.params?.id)
-      getData(`${BASE_URL}etsy/shipment/?id=${match.params.id}`).then(response => {
-        setCargoList(response.data);
-      });
+    if (match?.params?.id) getListFunc();
   }, [match?.params?.id]);
+
+  const getListFunc = (link, limit, offset) => {
+    getData(
+      link ||
+        `${BASE_URL}etsy/shipment_content_detail/?id=${match.params.id}&limit=${
+          filters?.limit || 25
+        }&offset=${filters?.offset || 0}`,
+    )
+      .then(response => {
+        const t = response?.data?.results?.length ? response?.data?.results : [];
+        setCargoList([...cargoList, ...t]);
+        setLastResponse(response?.data);
+
+        setHasScrolledToBottom(false);
+      })
+      .catch(error => {
+        console.log("error", error);
+      });
+  };
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!hasScrolledToBottom) {
+        const scrollThreshold = 0.7; // Set your threshold (70% in this example)
+
+        const scrollPosition = window.innerHeight + window.scrollY;
+        const scrollableHeight = document.body.offsetHeight;
+        const scrollableThreshold = scrollableHeight * scrollThreshold;
+
+        if (scrollPosition >= scrollableThreshold && lastResponse?.next) {
+          setHasScrolledToBottom(true);
+          getListFunc(lastResponse.next);
+
+          // Set the flag to true to ensure it only triggers once
+        }
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [hasScrolledToBottom, lastResponse]);
 
   const handleUpdateStatus = () => {
     match?.params?.id &&

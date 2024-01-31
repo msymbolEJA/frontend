@@ -156,10 +156,7 @@ export default function CustomizedTables() {
       const l = Object.keys(dataObj)?.length;
 
       if (l) {
-        console.log("clist", cargoList);
-        console.log("formattedData", formattedData);
         const test = clist.concat([...formattedData]);
-        console.log("test", test);
 
         setCargoList(test);
         setLastResponse(response?.data);
