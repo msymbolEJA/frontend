@@ -192,14 +192,14 @@ function App({ history }) {
     };
   }, [hasScrolledToBottom, lastResponse]);
 
-  const getListFunc = (link, limit, offset) => {
+  const getListFunc = (link) => {
     setloading(true);
     getData(
       link ||
         `${BASE_URL}etsy/mapping/?${filters?.status ? `status=${filters?.status}` : ""}&is_repeat=${
           filters?.is_repeat
-        }&ordering=${filters?.ordering || "-id"}&limit=${limit || filters?.limit || 0}&offset=${
-          offset || filters?.offset
+        }&ordering=${filters?.ordering || "-id"}&limit=${filters?.limit ?? 50}&offset=${
+          filters?.offset ?? 0
         }`,
     )
       .then(response => {

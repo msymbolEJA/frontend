@@ -219,17 +219,19 @@ function AllOrdersTable() {
     };
   }, [hasScrolledToBottom, lastResponse]);
 
-  const getListFunc = () => {
+  const getListFunc = link => {
     setloading(true);
     if (!searchWord) {
       if (filters?.status === "shipped" || filters?.status === "ready") {
         filters.ordering = "-last_updated";
       } else filters.ordering = "-id";
-      const url = `${BASE_URL}etsy/orders/?${`status=${filters?.status || "awaiting"}`}&is_repeat=${
-        filters?.is_repeat
-      }&is_followup=${filters?.is_followup}&ordering=${filters?.ordering}&limit=${
-        filters?.limit || 0
-      }&offset=${filters?.offset}`;
+      const url =
+        link ||
+        `${BASE_URL}etsy/orders/?${`status=${filters?.status || "awaiting"}`}&is_repeat=${
+          filters?.is_repeat
+        }&is_followup=${filters?.is_followup}&ordering=${filters?.ordering}&limit=${
+          filters?.limit ?? 50
+        }&offset=${filters?.offset ?? 0}`;
 
       getData(url)
         .then(response => {

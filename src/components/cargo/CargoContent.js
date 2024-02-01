@@ -71,8 +71,8 @@ export default function CustomizedTables({ match }) {
     getData(
       link ||
         `${BASE_URL}etsy/shipment_content_detail/?id=${match.params.id}&limit=${
-          filters?.limit || 25
-        }&offset=${filters?.offset || 0}`,
+          filters?.limit ?? 50
+        }&offset=${filters?.offset ?? 0}`,
     )
       .then(response => {
         const t = response?.data?.results?.length ? response?.data?.results : [];

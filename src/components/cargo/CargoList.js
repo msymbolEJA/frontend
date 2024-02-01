@@ -134,8 +134,8 @@ export default function CustomizedTables() {
   const getListFunc = link => {
     getData(
       link ||
-        `${BASE_URL}etsy/shipment_content_view/?limit=${filters?.limit || 0}&offset=${
-          filters?.offset
+        `${BASE_URL}etsy/shipment_content_view/?limit=${filters?.limit ?? 50}&offset=${
+          filters?.offset ?? 0
         }`,
     ).then(response => {
       let dataObj = response?.data?.results;
