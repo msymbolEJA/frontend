@@ -192,7 +192,7 @@ function App({ history }) {
     };
   }, [hasScrolledToBottom, lastResponse]);
 
-  const getListFunc = (link) => {
+  const getListFunc = link => {
     setloading(true);
     getData(
       link ||
@@ -463,7 +463,10 @@ function App({ history }) {
         toastWarnNotify("Selected 'PENDING' orders are approved");
         if (filters?.search) {
           history.push(`/approval?search=${filters?.search}&limit=${50}&offset=${0}`);
-        } else getListFunc();
+          window.location.reload();
+        } else {
+          window.location.reload();
+        }
         setSelected([]);
       })
       .catch(({ response }) => {
