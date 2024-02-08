@@ -291,9 +291,9 @@ function AllOrdersTable() {
     } catch (error) {
       tmp = [];
     }
-    if (!tmp) {
-      getListFunc();
-    }
+    // if (!tmp) {
+    //   getListFunc();
+    // }
     if (tmp?.length) {
       const resultFilteredByCountry =
         countryFilter === "all"
@@ -407,7 +407,7 @@ function AllOrdersTable() {
       .finally(() => {
         setUrl(`${BASE_URL}etsy/orders/?status=awaiting`);
         getAllPdfFunc();
-        getListFunc();
+        // getListFunc();
       });
   };
 
@@ -688,7 +688,7 @@ function AllOrdersTable() {
         toastErrorNotify("Error uploading file");
       })
       .finally(() => {
-        getListFunc();
+        // getListFunc();
         setIsUploadingFile(false);
       });
   };
