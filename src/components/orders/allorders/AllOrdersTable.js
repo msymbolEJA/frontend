@@ -36,7 +36,7 @@ import ShopifyColumns, { ShopifyColumnValues } from "./ShopifyColumns";
 
 const BASE_URL = process.env.REACT_APP_BASE_URL;
 // const BASE_URL_MAPPING = process.env.REACT_APP_BASE_URL_MAPPING;
-const PAGE_ROW_NUMBER = process.env.REACT_APP_PAGE_ROW_NUMBER || 50;
+const PAGE_ROW_NUMBER = process.env.REACT_APP_PAGE_ROW_NUMBER || 25;
 const NON_SKU = process.env.REACT_APP_NON_SKU === "true";
 
 const StyledTableCell = withStyles(theme => ({
@@ -138,26 +138,27 @@ function AllOrdersTable() {
   const localRole = localStorage.getItem("localRole");
 
   const userRole = user?.role || localRole;
-  const [lastResponse, setLastResponse] = useState(null);
-  const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
 
   const getOrdersInProgress = bypass => {
     getData(`${BASE_URL}etsy/get_mapping_update_date/`)
       .then(response => {
         const l = localStorage.getItem(
-          `${localStoragePrefix}-in_progress-${PAGE_ROW_NUMBER || 50}-0-last_updated`,
+          `${localStoragePrefix}-in_progress-${PAGE_ROW_NUMBER || 2500}-0-last_updated`,
         );
         if (response.data.last_updated !== l || bypass) {
-          getData(`${BASE_URL}etsy/orders/?status=in_progress&limit=${50}&offset=0`)
+          getData(`${BASE_URL}etsy/orders/?status=in_progress&limit=${2500}&offset=0`)
             .then(response => {
               const o = response?.data?.results?.length ? response?.data?.results : [];
-              localStorage.setItem(`${localStoragePrefix}-in_progress-${50}-0`, JSON.stringify(o));
               localStorage.setItem(
-                `${localStoragePrefix}-in_progress-${50}-0-last_updated`,
+                `${localStoragePrefix}-in_progress-${2500}-0`,
+                JSON.stringify(o),
+              );
+              localStorage.setItem(
+                `${localStoragePrefix}-in_progress-${2500}-0-last_updated`,
                 response.data.last_updated,
               );
               localStorage.setItem(
-                `${localStoragePrefix}-in_progress-${50}-0-count`,
+                `${localStoragePrefix}-in_progress-${2500}-0-count`,
                 response?.data?.results?.length,
               );
             })
@@ -173,65 +174,36 @@ function AllOrdersTable() {
   };
 
   const getLastUpdateDate = () => {
-    if (!filters?.search) getListFunc();
-    // getData(`${BASE_URL}etsy/get_mapping_update_date/`)
-    //   .then((response) => {
-    //     const l = localStorage.getItem(
-    //       `${localStoragePrefix}-${selectedTag}-${filters.limit}-${filters.offset}-last_updated`
-    //     );
-    //     if (response.data.last_updated !== l) {
-    //       localStorage.setItem(
-    //         `${localStoragePrefix}-${selectedTag}-${filters.limit}-${filters.offset}-last_updated`,
-    //         response.data.last_updated
-    //       );
-    //       if (!filters?.search) getListFunc();
-    //     }
-    //   })
-    //   .catch((error) => {
-    //     console.log("error", error);
-    //   })
-    //   .finally(() => { });
+    getData(`${BASE_URL}etsy/get_mapping_update_date/`)
+      .then(response => {
+        const l = localStorage.getItem(
+          `${localStoragePrefix}-${selectedTag}-${filters.limit}-${filters.offset}-last_updated`,
+        );
+        if (response.data.last_updated !== l) {
+          localStorage.setItem(
+            `${localStoragePrefix}-${selectedTag}-${filters.limit}-${filters.offset}-last_updated`,
+            response.data.last_updated,
+          );
+          if (!filters?.search) getListFunc();
+        }
+      })
+      .catch(error => {
+        console.log("error", error);
+      })
+      .finally(() => {});
   };
 
-  useEffect(() => {
-    const handleScroll = () => {
-      if (!hasScrolledToBottom) {
-        const scrollThreshold = 0.7; // Set your threshold (70% in this example)
-
-        const scrollPosition = window.innerHeight + window.scrollY;
-        const scrollableHeight = document.body.offsetHeight;
-        const scrollableThreshold = scrollableHeight * scrollThreshold;
-
-        if (scrollPosition >= scrollableThreshold && lastResponse?.next) {
-          console.log("Scrolled to the bottom!");
-          console.log("window.innerHeight + window.scrollY", scrollPosition);
-          setHasScrolledToBottom(true);
-          getListFunc(lastResponse.next);
-
-          // Set the flag to true to ensure it only triggers once
-        }
-      }
-    };
-    window.addEventListener("scroll", handleScroll);
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, [hasScrolledToBottom, lastResponse]);
-
-  const getListFunc = link => {
+  const getListFunc = () => {
     setloading(true);
     if (!searchWord) {
       if (filters?.status === "shipped" || filters?.status === "ready") {
         filters.ordering = "-last_updated";
       } else filters.ordering = "-id";
-      const url =
-        link ||
-        `${BASE_URL}etsy/orders/?${`status=${filters?.status || "awaiting"}`}&is_repeat=${
-          filters?.is_repeat
-        }&is_followup=${filters?.is_followup}&ordering=${filters?.ordering}&limit=${
-          filters?.limit ?? 50
-        }&offset=${filters?.offset ?? 0}`;
+      const url = `${BASE_URL}etsy/orders/?${`status=${filters?.status || "awaiting"}`}&is_repeat=${
+        filters?.is_repeat
+      }&is_followup=${filters?.is_followup}&ordering=${filters?.ordering}&limit=${
+        filters?.limit || 0
+      }&offset=${filters?.offset}`;
 
       getData(url)
         .then(response => {
@@ -251,11 +223,7 @@ function AllOrdersTable() {
             filters?.status === "in_progress"
               ? t.filter(item => !currentBarcodeList.includes(item.id))
               : t;
-
-          setRows([...rows, ...ft]);
-          setLastResponse(response?.data);
-
-          setHasScrolledToBottom(false);
+          setRows(ft);
         })
         .catch(error => {
           localStorage.setItem(
@@ -265,6 +233,7 @@ function AllOrdersTable() {
           console.log("error", error);
         })
         .finally(() => {
+          getLastUpdateDate();
           getOrdersInProgress();
           setloading(false);
         });
@@ -273,7 +242,7 @@ function AllOrdersTable() {
 
   useEffect(() => {
     if (!filters?.status) {
-      history.push("/all-orders?limit=50&offset=0");
+      history.push("/all-orders?limit=2500&offset=0");
       return;
     }
     if (filters?.search) return;
@@ -291,9 +260,9 @@ function AllOrdersTable() {
     } catch (error) {
       tmp = [];
     }
-    // if (!tmp) {
-    //   getListFunc();
-    // }
+    if (!tmp) {
+      getListFunc();
+    }
     if (tmp?.length) {
       const resultFilteredByCountry =
         countryFilter === "all"
@@ -351,19 +320,19 @@ function AllOrdersTable() {
     let newUrl = "";
     switch (statu) {
       case "all_orders":
-        newUrl += `limit=${50}&offset=${0}`;
+        newUrl += `limit=${25}&offset=${0}`;
         break;
       case "repeat":
-        newUrl += `is_repeat=true&limit=${PAGE_ROW_NUMBER || 50}&offset=${0}`; //&limit=${rowsPerPage}&offset=${page * rowsPerPage}
+        newUrl += `is_repeat=true&limit=${PAGE_ROW_NUMBER || 25}&offset=${0}`; //&limit=${rowsPerPage}&offset=${page * rowsPerPage}
         break;
       case "followUp":
-        newUrl += `is_followup=true&limit=${PAGE_ROW_NUMBER || 50}&offset=${0}`; //&limit=${rowsPerPage}&offset=${page * rowsPerPage}
+        newUrl += `is_followup=true&limit=${PAGE_ROW_NUMBER || 25}&offset=${0}`; //&limit=${rowsPerPage}&offset=${page * rowsPerPage}
         break;
       case "shipped":
-        newUrl += `status=${statu}&limit=${50}&offset=${0}`; //&limit=${rowsPerPage}&offset=${page * rowsPerPage}
+        newUrl += `status=${statu}&limit=${25}&offset=${0}`; //&limit=${rowsPerPage}&offset=${page * rowsPerPage}
         break;
       default: //&limit=${rowsPerPage}&offset=${page * rowsPerPage}
-        newUrl += `status=${statu}&limit=${PAGE_ROW_NUMBER || 50}&offset=${0}`;
+        newUrl += `status=${statu}&limit=${PAGE_ROW_NUMBER || 25}&offset=${0}`;
         break;
     }
     history.push(`/all-orders?&${newUrl}`);
@@ -407,7 +376,7 @@ function AllOrdersTable() {
       .finally(() => {
         setUrl(`${BASE_URL}etsy/orders/?status=awaiting`);
         getAllPdfFunc();
-        // getListFunc();
+        getListFunc();
       });
   };
 
@@ -431,7 +400,7 @@ function AllOrdersTable() {
       .then(response => {
         console.log("response", response);
         localStorage.removeItem(
-          `${localStoragePrefix}-in_progress-${PAGE_ROW_NUMBER || 50}-0-last_updated`,
+          `${localStoragePrefix}-in_progress-${PAGE_ROW_NUMBER || 2500}-0-last_updated`,
         );
         getOrdersInProgress();
         setRefreshTable(!refreshTable);
@@ -460,7 +429,7 @@ function AllOrdersTable() {
 
   const getSiblings = async id => {
     const ordersInProgressLS = JSON.parse(
-      localStorage.getItem(`${localStoragePrefix}-in_progress-${PAGE_ROW_NUMBER || 50}-0`),
+      localStorage.getItem(`${localStoragePrefix}-in_progress-${PAGE_ROW_NUMBER || 25}-0`),
     );
     const currentOrder =
       ordersInProgressLS?.length > 0
@@ -500,7 +469,7 @@ function AllOrdersTable() {
   const checkOrderIfInProgress = id => {
     let isInProgress = false;
     const ordersInProgressLS = JSON.parse(
-      localStorage.getItem(`${localStoragePrefix}-in_progress-${PAGE_ROW_NUMBER || 50}-0`),
+      localStorage.getItem(`${localStoragePrefix}-in_progress-${PAGE_ROW_NUMBER || 25}-0`),
     );
     isInProgress =
       (ordersInProgressLS?.length > 0 &&
@@ -577,6 +546,7 @@ function AllOrdersTable() {
         console.log("response", response);
       })
       .finally(() => {
+        getLastUpdateDate();
         getOrdersInProgress(true);
       });
   };
@@ -611,22 +581,16 @@ function AllOrdersTable() {
     )
       return;
     putData(`${BASE_URL}etsy/mapping/${id}/`, data)
-      .then(response => {
-        toastSuccessNotify("Success");
-      })
+      .then(response => {})
       .catch(error => {
         console.log(error);
-        alert("An error occurred. Please try again");
-        toastErrorNotify("Failed");
       })
       .finally(() => {
         if (filters?.search) {
-          history.push(`/all-orders?search=${filters?.search}&limit=${50}&offset=${0}`);
-        } else {
-          // getListFunc();
-        }
+          history.push(`/all-orders?search=${filters?.search}&limit=${25}&offset=${0}`);
+        } else getListFunc();
         setloading(false);
-        // setRefreshTable(!refreshTable);
+        setRefreshTable(!refreshTable);
       });
   };
 
@@ -639,8 +603,8 @@ function AllOrdersTable() {
   useEffect(() => {
     if (filters?.search) {
       globalSearch(
-        // `${BASE_URL_MAPPING}?search=${filters?.search}&limit=${50}&offset=${
-        `${BASE_URL}etsy/mapping/?search=${filters?.search}&limit=${50}&offset=${page * 25}`,
+        // `${BASE_URL_MAPPING}?search=${filters?.search}&limit=${25}&offset=${
+        `${BASE_URL}etsy/mapping/?search=${filters?.search}&limit=${25}&offset=${page * 25}`,
       )
         .then(response => {
           setRows(response.data.results);
@@ -656,7 +620,7 @@ function AllOrdersTable() {
 
   const searchHandler = (value, keyCode) => {
     if (keyCode === 13 && value) {
-      history.push(`/all-orders?search=${value}&limit=${50}&offset=${0}`);
+      history.push(`/all-orders?search=${value}&limit=${25}&offset=${0}`);
     }
   };
 
@@ -688,7 +652,7 @@ function AllOrdersTable() {
         toastErrorNotify("Error uploading file");
       })
       .finally(() => {
-        // getListFunc();
+        getListFunc();
         setIsUploadingFile(false);
       });
   };

@@ -36,7 +36,7 @@ import OrderStatus from "../tableitems/CustomSelectCell";
 import UploadFile from "../tableitems/UploadFile";
 import { putImage, postData, removeImage } from "../../helper/PostData";
 import { getQueryParams } from "../../helper/getQueryParams";
-import { toastErrorNotify, toastSuccessNotify, toastWarnNotify } from "../otheritems/ToastNotify";
+import { toastWarnNotify } from "../otheritems/ToastNotify";
 import ConstantTableCell from "../tableitems/ConstantTableCell";
 import FlagAndFavCell from "./FlagAndFavCell";
 import EditableTableCell from "../tableitems/EditableTableCell";
@@ -50,7 +50,7 @@ import { AppContext } from "../../context/Context";
 const BASE_URL = process.env.REACT_APP_BASE_URL;
 // const BASE_URL_MAPPING = process.env.REACT_APP_BASE_URL_MAPPING;
 const NON_SKU = process.env.REACT_APP_NON_SKU === "true" || false;
-const PAGE_ROW_NUMBER = process.env.REACT_APP_PAGE_ROW_NUMBER || 50;
+const PAGE_ROW_NUMBER = process.env.REACT_APP_PAGE_ROW_NUMBER || 25;
 const STORE_ORJ = process.env.REACT_APP_STORE_NAME_ORJ;
 
 const StyledMenu = withStyles({})(props => (
@@ -165,42 +165,14 @@ function App({ history }) {
   const [refreshTable, setRefreshTable] = useState(false);
   const { user } = useContext(AppContext);
 
-  const [lastResponse, setLastResponse] = useState(null);
-  const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (!hasScrolledToBottom) {
-        const scrollThreshold = 0.7; // Set your threshold (70% in this example)
-
-        const scrollPosition = window.innerHeight + window.scrollY;
-        const scrollableHeight = document.body.offsetHeight;
-        const scrollableThreshold = scrollableHeight * scrollThreshold;
-
-        if (scrollPosition >= scrollableThreshold && lastResponse?.next) {
-          setHasScrolledToBottom(true);
-          getListFunc(lastResponse.next);
-
-          // Set the flag to true to ensure it only triggers once
-        }
-      }
-    };
-    window.addEventListener("scroll", handleScroll);
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, [hasScrolledToBottom, lastResponse]);
-
-  const getListFunc = link => {
+  const getListFunc = () => {
     setloading(true);
     getData(
-      link ||
-        `${BASE_URL}etsy/mapping/?${filters?.status ? `status=${filters?.status}` : ""}&is_repeat=${
-          filters?.is_repeat
-        }&ordering=${filters?.ordering || "-id"}&limit=${filters?.limit ?? 50}&offset=${
-          filters?.offset ?? 0
-        }`,
+      `${BASE_URL}etsy/mapping/?${filters?.status ? `status=${filters?.status}` : ""}&is_repeat=${
+        filters?.is_repeat
+      }&ordering=${filters?.ordering || "-id"}&limit=${filters?.limit || 0}&offset=${
+        filters?.offset
+      }`,
     )
       .then(response => {
         const t = response?.data?.results?.length ? response?.data?.results : [];
@@ -212,10 +184,7 @@ function App({ history }) {
           `${localStoragePrefix}-mapping-${selectedTag}-${filters.limit}-${filters.offset}-count`,
           response?.data?.count || 0,
         );
-        setRows([...rows, ...t]);
-        setLastResponse(response?.data);
-
-        setHasScrolledToBottom(false);
+        setRows(t);
       })
       .catch(error => {
         localStorage.setItem(
@@ -322,22 +291,16 @@ function App({ history }) {
       return;
     setloading(true);
     putData(`${BASE_URL}etsy/mapping/${id}/`, data)
-      .then(response => {
-        toastSuccessNotify("Success");
-      })
+      .then(response => {})
       .catch(error => {
         console.log(error);
-        alert("An error occurred. Please try again");
-        toastErrorNotify("Failed");
       })
       .finally(() => {
         if (filters?.search) {
-          history.push(`/approval?search=${filters?.search}&limit=${50}&offset=${0}`);
-        } else {
-          // getListFunc();
-        }
+          history.push(`/approval?search=${filters?.search}&limit=${25}&offset=${0}`);
+        } else getListFunc();
         setloading(false);
-        // setRefreshTable(!refreshTable);
+        setRefreshTable(!refreshTable);
       });
   };
 
@@ -462,11 +425,8 @@ function App({ history }) {
       .then(res => {
         toastWarnNotify("Selected 'PENDING' orders are approved");
         if (filters?.search) {
-          history.push(`/approval?search=${filters?.search}&limit=${50}&offset=${0}`);
-          window.location.reload();
-        } else {
-          window.location.reload();
-        }
+          history.push(`/approval?search=${filters?.search}&limit=${25}&offset=${0}`);
+        } else getListFunc();
         setSelected([]);
       })
       .catch(({ response }) => {
@@ -494,18 +454,18 @@ function App({ history }) {
     let newUrl = "";
     switch (statu) {
       case "all_orders":
-        newUrl += `limit=${50}&offset=${0}`;
+        newUrl += `limit=${25}&offset=${0}`;
         break;
       case "repeat":
         newUrl += `is_repeat=true&ordering=-last_updated&limit=${
-          PAGE_ROW_NUMBER || 50
+          PAGE_ROW_NUMBER || 25
         }&offset=${0}`; //&limit=${rowsPerPage}&offset=${page * rowsPerPage}
         break;
       case "shipped":
-        newUrl += `status=${statu}&limit=${50}&offset=${0}`; //&limit=${rowsPerPage}&offset=${page * rowsPerPage}
+        newUrl += `status=${statu}&limit=${25}&offset=${0}`; //&limit=${rowsPerPage}&offset=${page * rowsPerPage}
         break;
       default: //&limit=${rowsPerPage}&offset=${page * rowsPerPage}
-        newUrl += `status=${statu}&limit=${PAGE_ROW_NUMBER || 50}&offset=${0}`;
+        newUrl += `status=${statu}&limit=${PAGE_ROW_NUMBER || 25}&offset=${0}`;
         break;
     }
     history.push(`/approval?&${newUrl}`);
@@ -641,8 +601,8 @@ function App({ history }) {
   useEffect(() => {
     if (filters?.search) {
       globalSearch(
-        // `${BASE_URL_MAPPING}?search=${filters?.search}&limit=${50}&offset=${
-        `${BASE_URL}etsy/mapping/?search=${filters?.search}&limit=${50}&offset=${page * 50}`,
+        // `${BASE_URL_MAPPING}?search=${filters?.search}&limit=${25}&offset=${
+        `${BASE_URL}etsy/mapping/?search=${filters?.search}&limit=${25}&offset=${page * 25}`,
       )
         .then(response => {
           setRows(response.data.results);
@@ -657,7 +617,7 @@ function App({ history }) {
 
   const searchHandler = (value, keyCode) => {
     if (keyCode === 13 && value) {
-      history.push(`/approval?search=${value}&limit=${50}&offset=${0}`);
+      history.push(`/approval?search=${value}&limit=${25}&offset=${0}`);
     }
   };
 

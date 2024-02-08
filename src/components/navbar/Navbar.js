@@ -35,7 +35,7 @@ import Notification from "./Notification";
 const BASE_URL = process.env.REACT_APP_BASE_URL;
 const NON_SKU = process.env.REACT_APP_NON_SKU === "true";
 const STORE_NAME = process.env.REACT_APP_STORE_NAME;
-const PAGE_ROW_NUMBER = process.env.REACT_APP_PAGE_ROW_NUMBER || 50;
+const PAGE_ROW_NUMBER = process.env.REACT_APP_PAGE_ROW_NUMBER;
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -251,7 +251,7 @@ export default function MenuAppBar() {
     // console.log("newStatu", newStatu);
     history.push(
       `/${e.currentTarget.id}?status=${newStatu}&limit=${
-        cargoList ? 10 : PAGE_ROW_NUMBER || 50
+        cargoList ? 10 : PAGE_ROW_NUMBER
       }&offset=0`,
     );
     setAnchorEl(null);
@@ -379,9 +379,7 @@ export default function MenuAppBar() {
                     }
                     startIcon={mobileView ? null : <ThumbUpIcon />}
                     onClick={() =>
-                      history.push(
-                        `/approval?&status=pending&limit=${PAGE_ROW_NUMBER || 50}&offset=0`,
-                      )
+                      history.push(`/approval?&status=pending&limit=${PAGE_ROW_NUMBER}&offset=0`)
                     }
                   >
                     <FormattedMessage id="admin" defaultMessage="Admin" />

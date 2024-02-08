@@ -16,7 +16,7 @@ import {
 } from "@material-ui/core";
 import { FormattedMessage } from "react-intl";
 
-const PAGE_ROW_NUMBER = process.env.REACT_APP_PAGE_ROW_NUMBER || 50;
+const PAGE_ROW_NUMBER = process.env.REACT_APP_PAGE_ROW_NUMBER;
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -135,7 +135,7 @@ export default function SummaryTable({
                           ? history.push(
                               `/all-orders?&status=${item.cell1
                                 .toLowerCase()
-                                .replace(" ", "_")}&limit=${PAGE_ROW_NUMBER || 50}&offset=0`,
+                                .replace(" ", "_")}&limit=${PAGE_ROW_NUMBER}&offset=0`,
                             )
                           : null
                       }
