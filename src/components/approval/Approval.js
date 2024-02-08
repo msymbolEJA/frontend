@@ -1125,7 +1125,10 @@ function App({ history }) {
                           ? "none"
                           : "auto",
                       backgroundColor:
-                        !isNaN(row?.qty?.split(" ")?.[0]) && Number(row?.qty?.split(" ")?.[0]) >= 4
+                        (process.env.REACT_APP_STORE_NAME === "Kalpli Serisi" ||
+                          process.env.REACT_APP_STORE_NAME === "Güneş Serisi") &&
+                        !isNaN(row?.qty?.split(" ")?.[0]) &&
+                        Number(row?.qty?.split(" ")?.[0]) >= 4
                           ? "#ee6363"
                           : (row.status !== "pending") & (row.approved === false)
                           ? "#FF9494"
