@@ -46,6 +46,7 @@ import { tagsData, repeatReasons } from "../../helper/Constants";
 import { FormattedMessage } from "react-intl";
 import ShoppingBasketIcon from "@material-ui/icons/ShoppingBasket";
 import { AppContext } from "../../context/Context";
+import CustomTableCell from "../orders/allorders/CustomTableCell";
 
 const BASE_URL = process.env.REACT_APP_BASE_URL;
 // const BASE_URL_MAPPING = process.env.REACT_APP_BASE_URL_MAPPING;
@@ -657,6 +658,14 @@ function App({ history }) {
     [],
   );
 
+  const blockAfterInProgress =
+    (process.env.REACT_APP_STORE_NAME === "Üçgen serisi" ||
+      process.env.REACT_APP_STORE_NAME === "Papyon serisi" ||
+      process.env.REACT_APP_STORE_NAME === "Manisa Serisi" ||
+      process.env.REACT_APP_STORE_NAME === "Ankara Serisi") &&
+    !["pending", "awaiting"].includes(selectedTag);
+  const SubjectiveTableCell = blockAfterInProgress ? CustomTableCell : EditableTableCell;
+
   // console.log("NON_SKU", NON_SKU);
 
   const repeatMenu = useCallback(
@@ -1226,7 +1235,7 @@ function App({ history }) {
                     </td>
                     <ConstantTableCell {...{ row, name: "created_date", name3: "buyer" }} />
                     {process.env.REACT_APP_STORE_NAME_ORJ === "Silveristic" ? (
-                      <EditableTableCell
+                      <SubjectiveTableCell
                         {...{
                           row,
                           name: "supplier",
@@ -1238,7 +1247,7 @@ function App({ history }) {
                     process.env.REACT_APP_STORE_NAME === "Kadife-1" ||
                     process.env.REACT_APP_STORE_NAME === "Mina" ||
                     process.env.REACT_APP_STORE_NAME === "Güneş Tekstil" ? (
-                      <EditableTableCell
+                      <SubjectiveTableCell
                         style={{ fontWeight: "bold" }}
                         {...{
                           row,
@@ -1249,7 +1258,7 @@ function App({ history }) {
                     ) : null}
                     {NON_SKU ? (
                       <>
-                        <EditableTableCell
+                        <SubjectiveTableCell
                           style={{ fontWeight: "bold" }}
                           {...{
                             row,
@@ -1260,7 +1269,7 @@ function App({ history }) {
                             onChange,
                           }}
                         />
-                        <EditableTableCell
+                        <SubjectiveTableCell
                           style={{ fontWeight: "bold" }}
                           {...{
                             row,
@@ -1274,14 +1283,14 @@ function App({ history }) {
                       </>
                     ) : (
                       <>
-                        <EditableTableCell
+                        <SubjectiveTableCell
                           {...{
                             row,
                             name: "type",
                             onChange,
                           }}
                         />
-                        <EditableTableCell
+                        <SubjectiveTableCell
                           // var1
                           {...{
                             row,
@@ -1289,7 +1298,7 @@ function App({ history }) {
                             onChange,
                           }}
                         />
-                        <EditableTableCell
+                        <SubjectiveTableCell
                           // var2
                           {...{
                             row,
@@ -1298,7 +1307,7 @@ function App({ history }) {
                             minWidth: 60,
                           }}
                         />
-                        <EditableTableCell
+                        <SubjectiveTableCell
                           {...{
                             row,
                             name: "qty",
@@ -1306,14 +1315,14 @@ function App({ history }) {
                             minWidth: 70,
                           }}
                         />
-                        <EditableTableCell
+                        <SubjectiveTableCell
                           {...{
                             row,
                             name: "size",
                             onChange,
                           }}
                         />
-                        <EditableTableCell
+                        <SubjectiveTableCell
                           {...{
                             row,
                             name: "start",
@@ -1321,7 +1330,7 @@ function App({ history }) {
                             minWidth: 80,
                           }}
                         />
-                        <EditableTableCell
+                        <SubjectiveTableCell
                           {...{
                             row,
                             name: "space",
@@ -1331,7 +1340,7 @@ function App({ history }) {
                         />
                       </>
                     )}
-                    <EditableTableCell
+                    <SubjectiveTableCell
                       {...{
                         row,
                         name: "explanation",
@@ -1427,14 +1436,14 @@ function App({ history }) {
                     {user !== "DrMel" &&
                     process.env.REACT_APP_STORE_NAME !== "Mina" &&
                     process.env.REACT_APP_STORE_NAME !== "Linen Serisi" ? (
-                      <EditableTableCell {...{ row, name: "gift_message", onChange }} />
+                      <SubjectiveTableCell {...{ row, name: "gift_message", onChange }} />
                     ) : null}
-                    <EditableTableCell {...{ row, name: "note", onChange }} />
+                    <SubjectiveTableCell {...{ row, name: "note", onChange }} />
                     <td
                       onClick={e => {
                         e.stopPropagation();
                       }}
-                      style={{ padding: 10 }}
+                      style={{ padding: 10, pointerEvents: blockAfterInProgress ? "none" : "auto" }}
                     >
                       <UploadFile
                         {...{
