@@ -21,7 +21,6 @@ import FormControl from "@material-ui/core/FormControl";
 import NativeSelect from "@material-ui/core/NativeSelect";
 
 const BASE_URL = process.env.REACT_APP_BASE_URL;
-const PAGE_ROW_NUMBER = process.env.REACT_APP_PAGE_ROW_NUMBER;
 
 const validationSchema = yup.object({
   username: yup
@@ -132,7 +131,7 @@ export default function Login() {
               response?.data?.role === "workshop_designer2"
             ) {
               history.push(
-                `/all-orders?&status=in_progress&limit=${PAGE_ROW_NUMBER}&offset=0`,
+                `/all-orders?&status=in_progress`,
               );
             } else {
               history.push("/");

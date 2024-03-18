@@ -36,7 +36,7 @@ import OrderStatus from "../tableitems/CustomSelectCell";
 import UploadFile from "../tableitems/UploadFile";
 import { putImage, postData, removeImage } from "../../helper/PostData";
 import { getQueryParams } from "../../helper/getQueryParams";
-import { toastWarnNotify } from "../otheritems/ToastNotify";
+import { toastErrorNotify, toastSuccessNotify, toastWarnNotify } from "../otheritems/ToastNotify";
 import ConstantTableCell from "../tableitems/ConstantTableCell";
 import FlagAndFavCell from "./FlagAndFavCell";
 import EditableTableCell from "../tableitems/EditableTableCell";
@@ -51,7 +51,6 @@ import CustomTableCell from "../orders/allorders/CustomTableCell";
 const BASE_URL = process.env.REACT_APP_BASE_URL;
 // const BASE_URL_MAPPING = process.env.REACT_APP_BASE_URL_MAPPING;
 const NON_SKU = process.env.REACT_APP_NON_SKU === "true" || false;
-const PAGE_ROW_NUMBER = process.env.REACT_APP_PAGE_ROW_NUMBER || 25;
 const STORE_ORJ = process.env.REACT_APP_STORE_NAME_ORJ;
 
 const StyledMenu = withStyles({})(props => (
@@ -143,8 +142,6 @@ const StyledTableCell = withStyles(theme => ({
   },
 }))(TableCell);
 
-const localStoragePrefix = process.env.REACT_APP_STORE_NAME_ORJ;
-
 function App({ history }) {
   const [rows, setRows] = useState([]);
   const classes = useStyles();
@@ -157,7 +154,10 @@ function App({ history }) {
   const [selected, setSelected] = useState([]);
   const [selectedForPackage, setSelectedForPackage] = useState([]);
 
-  const filters = getQueryParams();
+  const paramsQuery = getQueryParams();
+
+  const filters = { ...paramsQuery, limit: 150, offset: 0, status: paramsQuery?.status };
+
   const [selectedTag, setSelectedTag] = useState(filters?.status || "pending");
   const [repeatAnchorEl, setRepeatAnchorEl] = useState();
   const [rowIdToRepeat, setRowIdToRepeat] = useState();
@@ -165,6 +165,33 @@ function App({ history }) {
   const [repeatMenuData, setRepeatMenuData] = useState({});
   const [refreshTable, setRefreshTable] = useState(false);
   const { user } = useContext(AppContext);
+
+  const [lastResponse, setLastResponse] = useState(null);
+  const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!hasScrolledToBottom) {
+        const scrollThreshold = 0.7; // Set your threshold (70% in this example)
+
+        const scrollPosition = window.innerHeight + window.scrollY;
+        const scrollableHeight = document.body.offsetHeight;
+        const scrollableThreshold = scrollableHeight * scrollThreshold;
+
+        if (scrollPosition >= scrollableThreshold && lastResponse?.next) {
+          setHasScrolledToBottom(true);
+          loadMore(lastResponse.next);
+
+          // Set the flag to true to ensure it only triggers once
+        }
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [hasScrolledToBottom, lastResponse]);
 
   const getListFunc = () => {
     setloading(true);
@@ -177,67 +204,41 @@ function App({ history }) {
     )
       .then(response => {
         const t = response?.data?.results?.length ? response?.data?.results : [];
-        localStorage.setItem(
-          `${localStoragePrefix}-mapping-${selectedTag}-${filters.limit}-${filters.offset}`,
-          JSON.stringify(t),
-        );
-        localStorage.setItem(
-          `${localStoragePrefix}-mapping-${selectedTag}-${filters.limit}-${filters.offset}-count`,
-          response?.data?.count || 0,
-        );
         setRows(t);
+        setCount(response?.data?.count || 0);
+        setLastResponse(response?.data);
+
+        setHasScrolledToBottom(false);
       })
       .catch(error => {
-        localStorage.setItem(
-          `${localStoragePrefix}-mapping-${selectedTag}-${filters.limit}-${filters.offset}-last_updated`,
-          null,
-        );
         console.log("error", error);
       })
       .finally(() => setloading(false));
   };
 
-  const getLastUpdateDate = () => {
-    if (!filters?.search) getListFunc();
-    // getData(`${BASE_URL}etsy/get_mapping_update_date/`)
-    //   .then((response) => {
-    //     const l = localStorage.getItem(
-    //       `${localStoragePrefix}-mapping-${selectedTag}-${filters.limit}-${filters.offset}-last_updated`
-    //     );
-    //     if (response.data.last_updated !== l) {
-    //       localStorage.setItem(
-    //         `${localStoragePrefix}-mapping-${selectedTag}-${filters.limit}-${filters.offset}-last_updated`,
-    //         response.data.last_updated
-    //       );
-    //       if (!filters?.search) getListFunc();
-    //     }
-    //   })
-    //   .catch((error) => {
-    //     console.log("error", error);
-    //   })
-    //   .finally(() => {});
+  const loadMore = link => {
+    setloading(true);
+    getData(link)
+      .then(response => {
+        const t = response?.data?.results?.length ? response?.data?.results : [];
+        const copyRows = [...rows];
+        const concatted = copyRows.concat(t);
+
+        console.log("concatted", concatted);
+        setRows(concatted);
+        setLastResponse(response?.data);
+
+        setHasScrolledToBottom(false);
+      })
+      .catch(error => {
+        console.log("error", error);
+      })
+      .finally(() => setloading(false));
   };
 
   useEffect(() => {
-    if (filters?.search) return;
-    getLastUpdateDate();
-    let tmp;
-    try {
-      tmp =
-        JSON.parse(
-          localStorage.getItem(
-            `${localStoragePrefix}-${selectedTag}-${filters.limit}-${filters.offset}`,
-          ),
-        ) ?? [];
-    } catch (error) {
-      tmp = [];
-    }
-    if (!tmp) {
-      getListFunc();
-    }
-    if (tmp?.length) {
-      setRows(tmp);
-    }
+    getListFunc();
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     filters.ordering,
@@ -270,18 +271,11 @@ function App({ history }) {
   };
 
   const handleChangePage = (event, newPage) => {
-    let currentUrlParams = new URLSearchParams(window.location.search);
-    currentUrlParams.set("offset", newPage * filters?.limit || 0);
-    history.push(history.location.pathname + "?" + currentUrlParams.toString());
     setPage(newPage);
   };
 
   const handleChangeRowsPerPage = event => {
-    let rpp = +event.target.value;
     setPage(0);
-    let currentUrlParams = new URLSearchParams(window.location.search);
-    currentUrlParams.set("limit", rpp || 0);
-    history.push(history.location.pathname + "?" + currentUrlParams.toString());
   };
 
   const handleRowChange = (id, data) => {
@@ -292,14 +286,17 @@ function App({ history }) {
       return;
     setloading(true);
     putData(`${BASE_URL}etsy/mapping/${id}/`, data)
-      .then(response => {})
+      .then(response => {
+        toastSuccessNotify("Item updated successfully");
+      })
       .catch(error => {
         console.log(error);
+        toastErrorNotify("Error, Please try again after refresh the page");
       })
       .finally(() => {
         if (filters?.search) {
-          history.push(`/approval?search=${filters?.search}&limit=${25}&offset=${0}`);
-        } else getListFunc();
+          history.push(`/approval?search=${filters?.search}`);
+        }
         setloading(false);
         setRefreshTable(!refreshTable);
       });
@@ -344,13 +341,16 @@ function App({ history }) {
       let path = `${BASE_URL}etsy/mapping/${id}/`;
       putImage(path, imgFile, "image.png")
         .then(res => {
-          console.log(res);
+          const copyRows = [...rows];
+          const itemInRows = copyRows?.find(item => item?.id == id);
+          if (itemInRows) itemInRows.image = res?.data?.image;
+
+          setRows(copyRows);
+          toastSuccessNotify("Image uploaded successfully");
         })
         .catch(err => {
           console.log(err);
-        })
-        .finally(() => {
-          getListFunc();
+          toastErrorNotify("Error, Please try again after refresh the page");
         });
     } catch (error) {
       console.log("error", error);
@@ -365,13 +365,15 @@ function App({ history }) {
       let path = `${BASE_URL}etsy/mapping/${id}/destroy_image/`;
       removeImage(path)
         .then(res => {
-          console.log(res);
+          const copyRows = [...rows];
+          const itemInRows = copyRows?.find(item => item?.id == id);
+          if (itemInRows) itemInRows.image = null;
+          setRows(copyRows);
+          toastSuccessNotify("Image removed successfully");
         })
         .catch(err => {
           console.log(err);
-        })
-        .finally(() => {
-          getListFunc();
+          toastErrorNotify("Image couldn't be removed!");
         });
     } catch (error) {
       console.log("error", error);
@@ -426,7 +428,7 @@ function App({ history }) {
       .then(res => {
         toastWarnNotify("Selected 'PENDING' orders are approved");
         if (filters?.search) {
-          history.push(`/approval?search=${filters?.search}&limit=${25}&offset=${0}`);
+          history.push(`/approval?search=${filters?.search}`);
         } else getListFunc();
         setSelected([]);
       })
@@ -455,21 +457,19 @@ function App({ history }) {
     let newUrl = "";
     switch (statu) {
       case "all_orders":
-        newUrl += `limit=${25}&offset=${0}`;
+        newUrl += ``;
         break;
       case "repeat":
-        newUrl += `is_repeat=true&ordering=-last_updated&limit=${
-          PAGE_ROW_NUMBER || 25
-        }&offset=${0}`; //&limit=${rowsPerPage}&offset=${page * rowsPerPage}
+        newUrl += `?&is_repeat=true&ordering=-last_updated`; //&limit=${rowsPerPage}&offset=${page * rowsPerPage}
         break;
       case "shipped":
-        newUrl += `status=${statu}&limit=${25}&offset=${0}`; //&limit=${rowsPerPage}&offset=${page * rowsPerPage}
+        newUrl += `?&status=${statu}`; //&limit=${rowsPerPage}&offset=${page * rowsPerPage}
         break;
       default: //&limit=${rowsPerPage}&offset=${page * rowsPerPage}
-        newUrl += `status=${statu}&limit=${PAGE_ROW_NUMBER || 25}&offset=${0}`;
+        newUrl += `?&status=${statu}`;
         break;
     }
-    history.push(`/approval?&${newUrl}`);
+    history.push(`/approval${newUrl}`);
     setPage(0);
   };
 
@@ -602,8 +602,7 @@ function App({ history }) {
   useEffect(() => {
     if (filters?.search) {
       globalSearch(
-        // `${BASE_URL_MAPPING}?search=${filters?.search}&limit=${25}&offset=${
-        `${BASE_URL}etsy/mapping/?search=${filters?.search}&limit=${25}&offset=${page * 25}`,
+        `${BASE_URL}etsy/mapping/?search=${filters?.search}&limit=${150}&offset=${page * 150}`,
       )
         .then(response => {
           setRows(response.data.results);
@@ -618,7 +617,7 @@ function App({ history }) {
 
   const searchHandler = (value, keyCode) => {
     if (keyCode === 13 && value) {
-      history.push(`/approval?search=${value}&limit=${25}&offset=${0}`);
+      history.push(`/approval?search=${value}`);
     }
   };
 
@@ -845,27 +844,7 @@ function App({ history }) {
                 <FormattedMessage id={filters?.status || "result"} />
               </>
             )}{" "}
-            :{" "}
-            {rows.length ===
-            Number(
-              localStorage.getItem(
-                `${localStoragePrefix}-mapping-${selectedTag}-${filters.limit}-${filters.offset}-count`,
-              ),
-            )
-              ? localStorage.getItem(
-                  `${localStoragePrefix}-mapping-${selectedTag}-${filters.limit}-${filters.offset}-count`,
-                ) ?? 0
-              : `${rows.length} 
-              ${
-                selectedTag
-                  ? ` /${
-                      localStorage.getItem(
-                        `${localStoragePrefix}-mapping-${selectedTag}-${filters.limit}-${filters.offset}-count`,
-                      ) ?? 0
-                    }`
-                  : ""
-              }
-                `}
+            : {count}
           </>
         )}
       </div>
@@ -1467,21 +1446,13 @@ function App({ history }) {
               <td>
                 <FormattedMessage id="totalRecord" defaultMessage="Total Record" />:
               </td>
-              <td>
-                {localStorage.getItem(
-                  `${localStoragePrefix}-mapping-${selectedTag}-${filters.limit}-${filters.offset}-count`,
-                ) || 0}
-              </td>
+              <td>{count}</td>
               <TablePagination
-                rowsPerPageOptions={[25, 50, 100, 250, 500, 2500]}
+                rowsPerPageOptions={[150]}
                 colSpan={22}
-                count={Number(
-                  localStorage.getItem(
-                    `${localStoragePrefix}-mapping-${selectedTag}-${filters.limit}-${filters.offset}-count`,
-                  ) ?? 0,
-                )}
-                rowsPerPage={Number(filters.limit)}
-                page={page}
+                count={count}
+                rowsPerPage={count}
+                page={1}
                 SelectProps={{
                   inputProps: { "aria-label": "rows per page" },
                   native: true,

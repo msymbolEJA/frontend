@@ -11,7 +11,6 @@ import {
 import { FormattedMessage, useIntl } from "react-intl";
 
 const BASE_URL = process.env.REACT_APP_BASE_URL;
-const localStoragePrefix = process.env.REACT_APP_STORE_NAME_ORJ;
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -96,11 +95,6 @@ const CargoPage = ({ getListFunc, ids, setRefreshTable, countryFilter }) => {
         toastErrorNotify(response.data.Failed);
       })
       .finally(() => {
-        localStorage.removeItem(`${localStoragePrefix}-ready-50-0`);
-        localStorage.removeItem(`${localStoragePrefix}-ready-50-0-count`);
-        localStorage.removeItem(
-          `${localStoragePrefix}-ready-50-0-last_updated`
-        );
         setRefreshTable((p) => !p);
       });
     setCargoForm({

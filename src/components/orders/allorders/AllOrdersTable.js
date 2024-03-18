@@ -36,7 +36,6 @@ import ShopifyColumns, { ShopifyColumnValues } from "./ShopifyColumns";
 
 const BASE_URL = process.env.REACT_APP_BASE_URL;
 // const BASE_URL_MAPPING = process.env.REACT_APP_BASE_URL_MAPPING;
-const PAGE_ROW_NUMBER = process.env.REACT_APP_PAGE_ROW_NUMBER || 25;
 const NON_SKU = process.env.REACT_APP_NON_SKU === "true";
 
 const StyledTableCell = withStyles(theme => ({
@@ -116,7 +115,11 @@ function AllOrdersTable() {
   const [selected, setSelected] = useState([]);
   const [countryFilter, setCountryFilter] = useState("all");
   const { user } = useContext(AppContext);
-  const filters = getQueryParams();
+
+  const paramsQuery = getQueryParams();
+
+  const filters = { ...paramsQuery, limit: 150, offset: 0, status: paramsQuery?.status };
+
   const barcodeInputRef = useRef();
   const uploadLabelRef = useRef();
   const { formatMessage } = useIntl();
@@ -137,61 +140,46 @@ function AllOrdersTable() {
 
   const localRole = localStorage.getItem("localRole");
 
+  const [inProggressItems, setInProggressItems] = useState([]);
   const userRole = user?.role || localRole;
 
-  const getOrdersInProgress = bypass => {
-    getData(`${BASE_URL}etsy/get_mapping_update_date/`)
+  const [lastResponse, setLastResponse] = useState(null);
+  const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
+
+  const getOrdersInProgress = () => {
+    getData(`${BASE_URL}etsy/orders/?status=in_progress&limit=${2500}&offset=0`)
       .then(response => {
-        const l = localStorage.getItem(
-          `${localStoragePrefix}-in_progress-${PAGE_ROW_NUMBER || 2500}-0-last_updated`,
-        );
-        if (response.data.last_updated !== l || bypass) {
-          getData(`${BASE_URL}etsy/orders/?status=in_progress&limit=${2500}&offset=0`)
-            .then(response => {
-              const o = response?.data?.results?.length ? response?.data?.results : [];
-              localStorage.setItem(
-                `${localStoragePrefix}-in_progress-${2500}-0`,
-                JSON.stringify(o),
-              );
-              localStorage.setItem(
-                `${localStoragePrefix}-in_progress-${2500}-0-last_updated`,
-                response.data.last_updated,
-              );
-              localStorage.setItem(
-                `${localStoragePrefix}-in_progress-${2500}-0-count`,
-                response?.data?.results?.length,
-              );
-            })
-            .catch(error => {
-              console.log("error", error);
-            });
-        }
+        const o = response?.data?.results?.length ? response?.data?.results : [];
+        setInProggressItems(o);
       })
       .catch(error => {
         console.log("error", error);
-      })
-      .finally(() => {});
+      });
   };
 
-  const getLastUpdateDate = () => {
-    getData(`${BASE_URL}etsy/get_mapping_update_date/`)
-      .then(response => {
-        const l = localStorage.getItem(
-          `${localStoragePrefix}-${selectedTag}-${filters.limit}-${filters.offset}-last_updated`,
-        );
-        if (response.data.last_updated !== l) {
-          localStorage.setItem(
-            `${localStoragePrefix}-${selectedTag}-${filters.limit}-${filters.offset}-last_updated`,
-            response.data.last_updated,
-          );
-          if (!filters?.search) getListFunc();
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!hasScrolledToBottom) {
+        const scrollThreshold = 0.7; // Set your threshold (70% in this example)
+
+        const scrollPosition = window.innerHeight + window.scrollY;
+        const scrollableHeight = document.body.offsetHeight;
+        const scrollableThreshold = scrollableHeight * scrollThreshold;
+
+        if (scrollPosition >= scrollableThreshold && lastResponse?.next) {
+          setHasScrolledToBottom(true);
+          loadMore(lastResponse.next);
+
+          // Set the flag to true to ensure it only triggers once
         }
-      })
-      .catch(error => {
-        console.log("error", error);
-      })
-      .finally(() => {});
-  };
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [hasScrolledToBottom, lastResponse]);
 
   const getListFunc = () => {
     setloading(true);
@@ -199,6 +187,7 @@ function AllOrdersTable() {
       if (filters?.status === "shipped" || filters?.status === "ready") {
         filters.ordering = "-last_updated";
       } else filters.ordering = "-id";
+
       const url = `${BASE_URL}etsy/orders/?${`status=${filters?.status || "awaiting"}`}&is_repeat=${
         filters?.is_repeat
       }&is_followup=${filters?.is_followup}&ordering=${filters?.ordering}&limit=${
@@ -209,74 +198,78 @@ function AllOrdersTable() {
         .then(response => {
           const t = response?.data?.results?.length ? response?.data?.results : [];
 
-          localStorage.setItem(
-            `${localStoragePrefix}-${selectedTag}-${filters.limit}-${filters.offset}`,
-            JSON.stringify(t),
-          );
+          const resultFilteredByCountry =
+            countryFilter === "all"
+              ? t
+              : t.filter(item =>
+                  countryFilter === "usa" ? item.country_id === "209" : item.country_id !== "209",
+                );
 
-          localStorage.setItem(
-            `${localStoragePrefix}-${selectedTag}-${filters.limit}-${filters.offset}-count`,
-            response?.data?.count || 0,
-          );
-
-          let ft =
+          const ft =
             filters?.status === "in_progress"
-              ? t.filter(item => !currentBarcodeList.includes(item.id))
-              : t;
+              ? resultFilteredByCountry.filter(
+                  item => !currentBarcodeList.includes(item.id.toString()),
+                )
+              : resultFilteredByCountry;
+
           setRows(ft);
+          setCount(response?.data?.count || 0);
+          setLastResponse(response?.data);
+
+          setHasScrolledToBottom(false);
         })
         .catch(error => {
-          localStorage.setItem(
-            `${localStoragePrefix}-${selectedTag}-${filters.limit}-${filters.offset}-last_updated`,
-            null,
-          );
           console.log("error", error);
         })
         .finally(() => {
-          getLastUpdateDate();
-          getOrdersInProgress();
+          // getOrdersInProgress();
           setloading(false);
         });
     }
   };
+  const loadMore = link => {
+    setloading(true);
+
+    getData(link)
+      .then(response => {
+        const t = response?.data?.results?.length ? response?.data?.results : [];
+
+        const copyRows = [...rows];
+
+        const resultFilteredByCountry =
+          countryFilter === "all"
+            ? t
+            : t.filter(item =>
+                countryFilter === "usa" ? item.country_id === "209" : item.country_id !== "209",
+              );
+
+        const ft =
+          filters?.status === "in_progress"
+            ? resultFilteredByCountry.filter(
+                item => !currentBarcodeList.includes(item.id.toString()),
+              )
+            : resultFilteredByCountry;
+
+        const concatted = copyRows.concat(ft);
+
+        setRows(concatted);
+        setLastResponse(response?.data);
+
+        setHasScrolledToBottom(false);
+      })
+      .catch(error => {
+        console.log("error", error);
+      })
+      .finally(() => {
+        setloading(false);
+      });
+  };
 
   useEffect(() => {
-    if (!filters?.status) {
-      history.push("/all-orders?limit=2500&offset=0");
-      return;
-    }
-    if (filters?.search) return;
-    getLastUpdateDate();
     if (filters?.status === "awaiting") getAllPdfFunc();
     if (filters?.status === "ready") getOrdersInProgress();
-    let tmp;
-    try {
-      tmp =
-        JSON.parse(
-          localStorage.getItem(
-            `${localStoragePrefix}-${selectedTag}-${filters.limit}-${filters.offset}`,
-          ),
-        ) ?? [];
-    } catch (error) {
-      tmp = [];
-    }
-    if (!tmp) {
-      getListFunc();
-    }
-    if (tmp?.length) {
-      const resultFilteredByCountry =
-        countryFilter === "all"
-          ? tmp
-          : tmp.filter(item =>
-              countryFilter === "usa" ? item.country_id === "209" : item.country_id !== "209",
-            );
+    getListFunc();
 
-      const ft =
-        filters?.status === "in_progress"
-          ? resultFilteredByCountry.filter(item => !currentBarcodeList.includes(item.id.toString()))
-          : resultFilteredByCountry;
-      setRows(ft);
-    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     filters.ordering,
@@ -296,18 +289,11 @@ function AllOrdersTable() {
   }, [filters?.status]);
 
   const handleChangePage = (event, newPage) => {
-    let currentUrlParams = new URLSearchParams(window.location.search);
-    currentUrlParams.set("offset", newPage * filters?.limit || 0);
-    history.push(history.location.pathname + "?" + currentUrlParams.toString());
     setPage(newPage);
   };
 
   const handleChangeRowsPerPage = event => {
-    let rpp = +event.target.value;
     setPage(0);
-    let currentUrlParams = new URLSearchParams(window.location.search);
-    currentUrlParams.set("limit", rpp || 0);
-    history.push(history.location.pathname + "?" + currentUrlParams.toString());
   };
 
   const handleTagChange = e => {
@@ -320,22 +306,22 @@ function AllOrdersTable() {
     let newUrl = "";
     switch (statu) {
       case "all_orders":
-        newUrl += `limit=${25}&offset=${0}`;
+        newUrl += ``;
         break;
       case "repeat":
-        newUrl += `is_repeat=true&limit=${PAGE_ROW_NUMBER || 25}&offset=${0}`; //&limit=${rowsPerPage}&offset=${page * rowsPerPage}
+        newUrl += `?&is_repeat=true`; //&limit=${rowsPerPage}&offset=${page * rowsPerPage}
         break;
       case "followUp":
-        newUrl += `is_followup=true&limit=${PAGE_ROW_NUMBER || 25}&offset=${0}`; //&limit=${rowsPerPage}&offset=${page * rowsPerPage}
+        newUrl += `?&is_followup=true`; //&limit=${rowsPerPage}&offset=${page * rowsPerPage}
         break;
       case "shipped":
-        newUrl += `status=${statu}&limit=${25}&offset=${0}`; //&limit=${rowsPerPage}&offset=${page * rowsPerPage}
+        newUrl += `?&status=${statu}`; //&limit=${rowsPerPage}&offset=${page * rowsPerPage}
         break;
       default: //&limit=${rowsPerPage}&offset=${page * rowsPerPage}
-        newUrl += `status=${statu}&limit=${PAGE_ROW_NUMBER || 25}&offset=${0}`;
+        newUrl += `?&status=${statu}`;
         break;
     }
-    history.push(`/all-orders?&${newUrl}`);
+    history.push(`/all-orders${newUrl}`);
     setPage(0);
   };
 
@@ -395,26 +381,10 @@ function AllOrdersTable() {
   //   iframe.src = url;
   // };
 
-  const changeGoogleSheetReadyStatus = (id, is_ready) => {
-    putData(`${BASE_URL}etsy/mapping/${id}/`, { is_ready })
-      .then(response => {
-        console.log("response", response);
-        localStorage.removeItem(
-          `${localStoragePrefix}-in_progress-${PAGE_ROW_NUMBER || 2500}-0-last_updated`,
-        );
-        getOrdersInProgress();
-        setRefreshTable(!refreshTable);
-      })
-      .catch(error => {
-        console.log("error", error);
-        console.log(error.response);
-      });
-  };
   const changeOrderStatus = (id, status) => {
     putData(`${BASE_URL}etsy/mapping/${id}/`, { status })
       .then(response => {
         const pdfUrl = `${BASE_URL}${response.data[1]}`;
-        console.log("pfdUrl", pdfUrl);
         if (Array.isArray(response.data)) {
           printJS(pdfUrl);
         }
@@ -428,9 +398,7 @@ function AllOrdersTable() {
   };
 
   const getSiblings = async id => {
-    const ordersInProgressLS = JSON.parse(
-      localStorage.getItem(`${localStoragePrefix}-in_progress-${PAGE_ROW_NUMBER || 25}-0`),
-    );
+    const ordersInProgressLS = [...inProggressItems];
     const currentOrder =
       ordersInProgressLS?.length > 0
         ? ordersInProgressLS.filter(item => item.id.toString() === id)?.[0]
@@ -468,9 +436,7 @@ function AllOrdersTable() {
 
   const checkOrderIfInProgress = id => {
     let isInProgress = false;
-    const ordersInProgressLS = JSON.parse(
-      localStorage.getItem(`${localStoragePrefix}-in_progress-${PAGE_ROW_NUMBER || 25}-0`),
-    );
+    const ordersInProgressLS = [...inProggressItems];
     isInProgress =
       (ordersInProgressLS?.length > 0 &&
         ordersInProgressLS.filter(item => item.id.toString() === id)?.length &&
@@ -524,30 +490,16 @@ function AllOrdersTable() {
     postData(`${BASE_URL}etsy/approved_all_ready/`, { ids: currentBarcodeList })
       .then(res => {
         toastSuccessNotify("Saved!");
-        /*         localStorage.removeItem(`${localStoragePrefix}-in_progress-${PAGE_ROW_NUMBER}-0`);
-        localStorage.removeItem(
-          `${localStoragePrefix}-in_progress-${PAGE_ROW_NUMBER}-0-last_updated`
-        );
-        localStorage.removeItem(
-          `${localStoragePrefix}-in_progress-${PAGE_ROW_NUMBER}-0-count`
-        ); */
+
         localStorage.setItem(`${localStoragePrefix}-barcode_list`, []);
         localStorage.setItem(`${localStoragePrefix}-sibling_list`, []);
-        localStorage.removeItem(
-          `${localStoragePrefix}-${selectedTag}-${filters.limit}-${filters.offset}`,
-        );
-        localStorage.removeItem(
-          `${localStoragePrefix}-${selectedTag}-${filters.limit}-${filters.offset}-count`,
-        );
+
         setCurrentBarcodeList([]);
         setCurrentSiblingList([]);
       })
       .catch(({ response }) => {
         console.log("response", response);
-      })
-      .finally(() => {
-        getLastUpdateDate();
-        getOrdersInProgress(true);
+        getOrdersInProgress();
       });
   };
 
@@ -581,14 +533,17 @@ function AllOrdersTable() {
     )
       return;
     putData(`${BASE_URL}etsy/mapping/${id}/`, data)
-      .then(response => {})
+      .then(response => {
+        toastSuccessNotify("Item updated successfully");
+      })
       .catch(error => {
         console.log(error);
+        toastErrorNotify("Error, Please try again after refresh the page");
       })
       .finally(() => {
         if (filters?.search) {
-          history.push(`/all-orders?search=${filters?.search}&limit=${25}&offset=${0}`);
-        } else getListFunc();
+          history.push(`/all-orders?search=${filters?.search}`);
+        }
         setloading(false);
         setRefreshTable(!refreshTable);
       });
@@ -620,7 +575,7 @@ function AllOrdersTable() {
 
   const searchHandler = (value, keyCode) => {
     if (keyCode === 13 && value) {
-      history.push(`/all-orders?search=${value}&limit=${25}&offset=${0}`);
+      history.push(`/all-orders?search=${value}`);
     }
   };
 
@@ -652,7 +607,8 @@ function AllOrdersTable() {
         toastErrorNotify("Error uploading file");
       })
       .finally(() => {
-        getListFunc();
+        // getListFunc();
+        window.location.reload();
         setIsUploadingFile(false);
       });
   };
@@ -721,7 +677,7 @@ function AllOrdersTable() {
                 <FormattedMessage id="ready_date" defaultMessage="Approval Date" />
               </StyledTableCell>
 
-              {localRole !== "workshop_designer" && localRole !== "workshop_designer2" && (
+              {userRole !== "workshop_designer" && userRole !== "workshop_designer2" && (
                 <StyledTableCell align="center">
                   <FormattedMessage id="buyer" defaultMessage="Buyer" />
                 </StyledTableCell>
@@ -745,7 +701,7 @@ function AllOrdersTable() {
                     <FormattedMessage id="color" defaultMessage="Color" />
                   </StyledTableCell>
 
-                  {localRole !== "workshop_manager" && (
+                  {userRole !== "workshop_manager" && (
                     <StyledTableCell align="center">
                       <FormattedMessage id="explanationMod" defaultMessage="Mod-Explanation" />{" "}
                     </StyledTableCell>
@@ -756,17 +712,17 @@ function AllOrdersTable() {
                   <StyledTableCell align="center">
                     <FormattedMessage id="type" defaultMessage="Type" />
                   </StyledTableCell>
-                  {localRole !== "workshop_designer" && localRole !== "workshop_designer2" && (
+                  {userRole !== "workshop_designer" && userRole !== "workshop_designer2" && (
                     <StyledTableCell align="center">
                       <FormattedMessage id="var1" />
                     </StyledTableCell>
                   )}
-                  {localRole !== "workshop_designer" && localRole !== "workshop_designer2" && (
+                  {userRole !== "workshop_designer" && userRole !== "workshop_designer2" && (
                     <StyledTableCell align="center">
                       <FormattedMessage id="var2" />
                     </StyledTableCell>
                   )}
-                  {localRole !== "workshop_designer" && localRole !== "workshop_designer2" && (
+                  {userRole !== "workshop_designer" && userRole !== "workshop_designer2" && (
                     <StyledTableCell align="center">
                       <FormattedMessage id="var3" />
                     </StyledTableCell>
@@ -774,13 +730,13 @@ function AllOrdersTable() {
                   <StyledTableCell align="center">
                     <FormattedMessage id="var4" />
                   </StyledTableCell>
-                  {localRole !== "workshop_designer" && localRole !== "workshop_designer2" && (
+                  {userRole !== "workshop_designer" && userRole !== "workshop_designer2" && (
                     <StyledTableCell align="center">
                       <FormattedMessage id="var5" />
                     </StyledTableCell>
                   )}
 
-                  {localRole !== "workshop_designer" && localRole !== "workshop_designer2" && (
+                  {userRole !== "workshop_designer" && userRole !== "workshop_designer2" && (
                     <StyledTableCell align="center">
                       <FormattedMessage id="var6" />
                     </StyledTableCell>
@@ -805,8 +761,8 @@ function AllOrdersTable() {
               {!isBeyazit &&
                 process.env.REACT_APP_STORE_NAME !== "Mina" &&
                 process.env.REACT_APP_STORE_NAME !== "Linen Serisi" &&
-                localRole !== "workshop_designer" &&
-                localRole !== "workshop_designer2" && (
+                userRole !== "workshop_designer" &&
+                userRole !== "workshop_designer2" && (
                   <StyledTableCell
                     align="center"
                     onClick={() => sortByGiftMessages()}
@@ -883,7 +839,7 @@ function AllOrdersTable() {
                   />
                   {/*   <CustomTableCell {...{ row, name: "ready_date" }} /> */}
 
-                  {localRole !== "workshop_designer" && localRole !== "workshop_designer2" && (
+                  {userRole !== "workshop_designer" && userRole !== "workshop_designer2" && (
                     <CustomTableCell {...{ row, name: "buyer" }} />
                   )}
                   {/*   <CustomTableCell {...{ row, name: "supplier" }} /> */}
@@ -912,7 +868,7 @@ function AllOrdersTable() {
                               : "variation_2_value",
                         }}
                       />
-                      {localRole !== "workshop_manager" && (
+                      {userRole !== "workshop_manager" && (
                         <EditableTableCell
                           onClick={e => e.stopPropagation()}
                           {...{
@@ -928,21 +884,21 @@ function AllOrdersTable() {
                     <>
                       <CustomTableCell {...{ row, name: "type" }} />
                       {/* This wil change with shopify */}
-                      {localRole !== "workshop_designer" && localRole !== "workshop_designer2" && (
+                      {userRole !== "workshop_designer" && userRole !== "workshop_designer2" && (
                         <CustomTableCell {...{ row, name: "length" }} />
                       )}
-                      {localRole !== "workshop_designer" && localRole !== "workshop_designer2" && (
+                      {userRole !== "workshop_designer" && userRole !== "workshop_designer2" && (
                         <CustomTableCell {...{ row, name: "color" }} />
                       )}
-                      {localRole !== "workshop_designer" && localRole !== "workshop_designer2" && (
+                      {userRole !== "workshop_designer" && userRole !== "workshop_designer2" && (
                         <CustomTableCell {...{ row, name: "qty" }} />
                       )}
                       <CustomTableCell {...{ row, name: "size" }} />
-                      {localRole !== "workshop_designer" && localRole !== "workshop_designer2" && (
+                      {userRole !== "workshop_designer" && userRole !== "workshop_designer2" && (
                         <CustomTableCell {...{ row, name: "start" }} />
                       )}
                       {/* --------------------------- */}
-                      {localRole !== "workshop_designer" && localRole !== "workshop_designer2" && (
+                      {userRole !== "workshop_designer" && userRole !== "workshop_designer2" && (
                         <CustomTableCell {...{ row, name: "space" }} />
                       )}
                       {/*   <EditableTableCell
@@ -966,37 +922,12 @@ function AllOrdersTable() {
                       minWidth: 250,
                     }}
                   />
-                  {selectedTag === "in_progress" &&
-                  (process.env.REACT_APP_STORE_NAME_ORJ === "Linenia" ||
-                    process.env.REACT_APP_STORE_NAME_ORJ === "ShinyCustomized" ||
-                    process.env.REACT_APP_STORE_NAME_ORJ === "LinenByMN" ||
-                    process.env.REACT_APP_STORE_NAME_ORJ === "DALLAS") ? (
-                    <td
-                      style={{
-                        padding: 10,
-                      }}
-                      onClick={e => {
-                        e.stopPropagation();
-                      }}
-                      onBlur={e => {
-                        e.stopPropagation();
-                      }}
-                      onChange={e => {
-                        e.stopPropagation();
-                      }}
-                    >
-                      <Checkbox
-                        checked={row.is_ready}
-                        onChange={e => changeGoogleSheetReadyStatus(row.id, e.target.checked)}
-                        color="primary"
-                      />
-                    </td>
-                  ) : null}
+
                   {!isBeyazit &&
                     process.env.REACT_APP_STORE_NAME !== "Mina" &&
                     process.env.REACT_APP_STORE_NAME !== "Linen Serisi" &&
-                    localRole !== "workshop_designer" &&
-                    localRole !== "workshop_designer2" && (
+                    userRole !== "workshop_designer" &&
+                    userRole !== "workshop_designer2" && (
                       <CustomTableCell
                         onClick={e => {
                           e.stopPropagation();
@@ -1048,21 +979,13 @@ function AllOrdersTable() {
               <td>
                 <FormattedMessage id="totalRecord" defaultMessage="Total Record" />:
               </td>
-              <td>
-                {localStorage.getItem(
-                  `${localStoragePrefix}-${selectedTag}-${filters.limit}-${filters.offset}-count`,
-                ) || 0}
-              </td>
+              <td>{count}</td>
               <TablePagination
-                rowsPerPageOptions={[25, 50, 100, 250, 500, 2500]}
+                rowsPerPageOptions={[150]}
                 colSpan={22}
-                count={Number(
-                  localStorage.getItem(
-                    `${localStoragePrefix}-${selectedTag}-${filters.limit}-${filters.offset}-count`,
-                  ) || 0,
-                )}
-                rowsPerPage={Number(filters.limit)}
-                page={page}
+                count={count}
+                rowsPerPage={count}
+                page={1}
                 SelectProps={{
                   inputProps: { "aria-label": "rows per page" },
                   native: true,
@@ -1190,8 +1113,8 @@ function AllOrdersTable() {
         </div>
         <hr />
         {selectedTag === "in_progress" &&
-          localRole !== "workshop_designer" &&
-          localRole !== "workshop_designer2" &&
+          userRole !== "workshop_designer" &&
+          userRole !== "workshop_designer2" &&
           process.env.REACT_APP_GOOGLE_SHEET_LINK && (
             <div
               style={{
@@ -1268,8 +1191,8 @@ function AllOrdersTable() {
               marginLeft: 16,
             }}
           >
-            {localRole === "workshop_designer" ||
-            localRole === "workshop_designer2" ? null : loading ? (
+            {userRole === "workshop_designer" ||
+            userRole === "workshop_designer2" ? null : loading ? (
               <FormattedMessage id="updating" />
             ) : (
               <>
@@ -1278,27 +1201,7 @@ function AllOrdersTable() {
                   id={filters?.status || "result"}
                   defaultMessage={filters?.status?.toUpperCase() || "Result".toUpperCase()}
                 />{" "}
-                :{" "}
-                {rows?.length ===
-                Number(
-                  localStorage.getItem(
-                    `${localStoragePrefix}-${selectedTag}-${filters.limit}-${filters.offset}-count`,
-                  ),
-                )
-                  ? localStorage.getItem(
-                      `${localStoragePrefix}-${selectedTag}-${filters.limit}-${filters.offset}-count`,
-                    ) ?? 0
-                  : `${rows.length} 
-                    ${
-                      selectedTag
-                        ? `/${
-                            localStorage.getItem(
-                              `${localStoragePrefix}-${selectedTag}-${filters.limit}-${filters.offset}-count`,
-                            ) ?? 0
-                          }`
-                        : ""
-                    }
-                      `}
+                : {count}
                 {selectedTag === "in_progress" && (
                   <>
                     {" ("}
