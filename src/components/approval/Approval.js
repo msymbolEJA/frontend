@@ -284,10 +284,16 @@ function App({ history }) {
       rows?.filter(item => item.id === id)?.[0]?.[Object.keys(data)[0]] === Object.values(data)[0]
     )
       return;
+
     setloading(true);
     putData(`${BASE_URL}etsy/mapping/${id}/`, data)
       .then(response => {
         toastSuccessNotify("Item updated successfully");
+        if (data?.status) {
+          const copyRows = [...rows];
+          const newRows = copyRows?.filter(item => item?.id != id);
+          setRows(newRows);
+        }
       })
       .catch(error => {
         console.log(error);

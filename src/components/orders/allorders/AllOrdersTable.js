@@ -500,6 +500,10 @@ function AllOrdersTable() {
       .catch(({ response }) => {
         console.log("response", response);
         getOrdersInProgress();
+      })
+      .finally(() => {
+        getAllPdfFunc();
+        getListFunc();
       });
   };
 
