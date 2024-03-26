@@ -257,9 +257,6 @@ function App({ history }) {
 
   const handleRequestSort = (event, property) => {
     const isAsc = order === "asc";
-    let currentUrlParams = new URLSearchParams(window.location.search);
-    currentUrlParams.set("ordering", `${isAsc ? "" : "-"}${property}`);
-    history.push(history.location.pathname + "?" + currentUrlParams.toString());
     setOrder(isAsc ? "desc" : "asc");
     setOrderBy(property);
   };

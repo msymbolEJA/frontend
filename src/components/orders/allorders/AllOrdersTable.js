@@ -190,27 +190,20 @@ function AllOrdersTable() {
 
       const url = `${BASE_URL}etsy/orders/?${`status=${filters?.status || "awaiting"}`}&is_repeat=${
         filters?.is_repeat
-      }&is_followup=${filters?.is_followup}&ordering=${filters?.ordering}&limit=${
-        filters?.limit || 0
-      }&offset=${filters?.offset}`;
+      }&is_followup=${filters?.is_followup}&country_filter=${countryFilter}&ordering=${
+        filters?.ordering
+      }&limit=${filters?.limit || 0}&offset=${filters?.offset}`;
 
       getData(url)
         .then(response => {
           const t = response?.data?.results?.length ? response?.data?.results : [];
 
-          const resultFilteredByCountry =
-            countryFilter === "all"
-              ? t
-              : t.filter(item =>
-                  countryFilter === "usa" ? item.country_id === "209" : item.country_id !== "209",
-                );
-
           const ft =
             filters?.status === "in_progress"
-              ? resultFilteredByCountry.filter(
+              ? t.filter(
                   item => !currentBarcodeList.includes(item.id.toString()),
                 )
-              : resultFilteredByCountry;
+              : t;
 
           setRows(ft);
           setCount(response?.data?.count || 0);
@@ -236,19 +229,12 @@ function AllOrdersTable() {
 
         const copyRows = [...rows];
 
-        const resultFilteredByCountry =
-          countryFilter === "all"
-            ? t
-            : t.filter(item =>
-                countryFilter === "usa" ? item.country_id === "209" : item.country_id !== "209",
-              );
-
         const ft =
           filters?.status === "in_progress"
-            ? resultFilteredByCountry.filter(
+            ? t.filter(
                 item => !currentBarcodeList.includes(item.id.toString()),
               )
-            : resultFilteredByCountry;
+            : t;
 
         const concatted = copyRows.concat(ft);
 
@@ -340,7 +326,7 @@ function AllOrdersTable() {
     let urlPrint;
     if (countryFilter === "usa") {
       urlPrint = `${BASE_URL}etsy/print_all/?type=us`;
-    } else if (countryFilter === "int") {
+    } else if (countryFilter === "international") {
       urlPrint = `${BASE_URL}etsy/print_all/?type=int`;
     } else urlPrint = `${BASE_URL}etsy/print_all/`;
 
@@ -499,9 +485,9 @@ function AllOrdersTable() {
       })
       .catch(({ response }) => {
         console.log("response", response);
-        getOrdersInProgress();
       })
       .finally(() => {
+        getOrdersInProgress();
         getAllPdfFunc();
         getListFunc();
       });
@@ -1172,11 +1158,11 @@ function AllOrdersTable() {
             </Button>
             <Button
               variant="contained"
-              color={countryFilter === "int" ? "primary" : "default"}
+              color={countryFilter === "international" ? "primary" : "default"}
               className={classes.countryFilter}
-              onClick={() => setCountryFilter("int")}
+              onClick={() => setCountryFilter("international")}
             >
-              <FormattedMessage id="int" defaultMessage="International" />
+              <FormattedMessage id="international" defaultMessage="International" />
             </Button>
           </div>
         </div>
