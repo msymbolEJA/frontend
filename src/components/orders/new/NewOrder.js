@@ -10,7 +10,13 @@ const BASE_URL = process.env.REACT_APP_BASE_URL;
 
 const initialValue = {
   customer: "",
-  supplier: STORE_NAME === "Linen Serisi" || STORE_NAME === "Kadife-1" || STORE_NAME === "Mina" || STORE_NAME === "Güneş Tekstil" ? "umraniye" : "asya",
+  supplier:
+    STORE_NAME === "Linen Serisi" ||
+    STORE_NAME === "Kadife-1" ||
+    STORE_NAME === "Mina" ||
+    STORE_NAME === "Güneş Tekstil"
+      ? "umraniye"
+      : "asya",
   type: "",
   length: "",
   color: "",
@@ -19,6 +25,7 @@ const initialValue = {
   start: "",
   space: "",
   explanation: "",
+  shop: "",
 };
 
 function NewOrder() {
@@ -26,15 +33,21 @@ function NewOrder() {
   const [info, setInfo] = useState(initialValue);
   const { response } = useFetch(`etsy/typleList/`);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = e => {
     e.preventDefault();
 
-    postFormData(`${BASE_URL}etsy/manuel_orders/`, info)
-      .then((data) => {
+    const infoCopy = { ...info };
+
+    if (STORE_NAME !== "Yildiz Serisi") {
+      delete infoCopy.shop;
+    }
+
+    postFormData(`${BASE_URL}etsy/manuel_orders/`, infoCopy)
+      .then(data => {
         // console.log(data.data.response);
         toastSuccessNotify(data.data.response);
       })
-      .catch((error) => {
+      .catch(error => {
         console.log(error);
       });
 
@@ -47,7 +60,7 @@ function NewOrder() {
     ]);
     setInfo(initialValue);
   };
-  const handleChange = (e) => {
+  const handleChange = e => {
     // console.log(info);
     setInfo({ ...info, [e.target.name]: e.target.value });
   };

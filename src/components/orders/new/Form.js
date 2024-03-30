@@ -13,7 +13,7 @@ import InputLabel from "@material-ui/core/InputLabel";
 
 const STORE_NAME = process.env.REACT_APP_STORE_NAME;
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(theme => ({
   root: {
     display: "flex",
     justifyContent: "center",
@@ -54,12 +54,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function InputForm({
-  handleSubmit,
-  handleChange,
-  info,
-  typeOptions,
-}) {
+export default function InputForm({ handleSubmit, handleChange, info, typeOptions }) {
   const classes = useStyles();
   const { formatMessage } = useIntl();
 
@@ -69,17 +64,11 @@ export default function InputForm({
       <Grid item xs={12} sm={8} md={5} component={Paper} elevation={6} square>
         <div className={classes.paper}>
           <Typography component="h1" variant="h5">
-            <FormattedMessage
-              id="newOrderCreation"
-              defaultMessage="New Order Creation"
-            />
+            <FormattedMessage id="newOrderCreation" defaultMessage="New Order Creation" />
           </Typography>
           <div className={classes.warn}>
             <Typography>
-              <FormattedMessage
-                id="fillAllFields"
-                defaultMessage="Please fill all the fields!"
-              />
+              <FormattedMessage id="fillAllFields" defaultMessage="Please fill all the fields!" />
             </Typography>
           </div>
           <form className={classes.form} onSubmit={handleSubmit}>
@@ -112,7 +101,10 @@ export default function InputForm({
                   defaultMessage: "Supplier",
                 })}
               </InputLabel>
-              {STORE_NAME === "Linen Serisi" || STORE_NAME === "Kadife-1" || STORE_NAME === "Mina" || STORE_NAME === "Güneş Tekstil" ? (
+              {STORE_NAME === "Linen Serisi" ||
+              STORE_NAME === "Kadife-1" ||
+              STORE_NAME === "Mina" ||
+              STORE_NAME === "Güneş Tekstil" ? (
                 <Select
                   labelId="demo-simple-select-outlined-label"
                   id="demo-simple-select-outlined"
@@ -141,7 +133,10 @@ export default function InputForm({
                 </Select>
               )}
             </FormControl>
-            {STORE_NAME === "Linen Serisi" || STORE_NAME === "Kadife-1" || STORE_NAME === "Mina" || STORE_NAME === "Güneş Tekstil" ? (
+            {STORE_NAME === "Linen Serisi" ||
+            STORE_NAME === "Kadife-1" ||
+            STORE_NAME === "Mina" ||
+            STORE_NAME === "Güneş Tekstil" ? (
               <>
                 <TextField
                   variant="outlined"
@@ -214,7 +209,7 @@ export default function InputForm({
                     label="Type"
                     value={info.type}
                   >
-                    {typeOptions?.map((item) => (
+                    {typeOptions?.map(item => (
                       <MenuItem key={item.desc} value={item.desc}>
                         {item.desc}
                       </MenuItem>
@@ -336,6 +331,38 @@ export default function InputForm({
               onChange={handleChange}
               value={info.explanation}
             />
+
+            {STORE_NAME === "Yildiz Serisi" ? (
+              <FormControl
+                variant="outlined"
+                fullWidth
+                margin="dense"
+                className={classes.formControl}
+                required
+              >
+                <InputLabel id="demo-simple-select-outlined-label-2">
+                  {formatMessage({
+                    id: "shop",
+                    defaultMessage: "Shop",
+                  })}
+                </InputLabel>
+
+                <Select
+                  labelId="demo-simple-select-outlined-label-2"
+                  id="demo-simple-select-outlined"
+                  required
+                  fullWidth
+                  value={info.shop}
+                  onChange={handleChange}
+                  name="shop"
+                  label="Shop"
+                >
+                  <MenuItem value={"Amazon"}>Amazon</MenuItem>
+                  <MenuItem value={"Other"}>Other</MenuItem>
+                </Select>
+              </FormControl>
+            ) : null}
+
             <Button
               type="submit"
               fullWidth
