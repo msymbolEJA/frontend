@@ -161,7 +161,7 @@ function App({ history }) {
   const [selectedTag, setSelectedTag] = useState(filters?.status || "pending");
   const [repeatAnchorEl, setRepeatAnchorEl] = useState();
   const [rowIdToRepeat, setRowIdToRepeat] = useState();
-  const [loading, setloading] = useState(false);
+  const [loading, setloading] = useState(true);
   const [repeatMenuData, setRepeatMenuData] = useState({});
   const [refreshTable, setRefreshTable] = useState(false);
   const { user } = useContext(AppContext);
@@ -196,11 +196,13 @@ function App({ history }) {
   const getListFunc = () => {
     setloading(true);
     getData(
-      `${BASE_URL}etsy/mapping/?${filters?.status ? `status=${filters?.status}` : ""}&is_repeat=${
-        filters?.is_repeat
-      }&ordering=${filters?.ordering || "-id"}&limit=${filters?.limit || 0}&offset=${
-        filters?.offset
-      }`,
+      `${BASE_URL}etsy/mapping/?${
+        filters?.status !== "all_orders" && filters?.status !== "repeat"
+          ? `status=${filters?.status}`
+          : ""
+      }&is_repeat=${filters?.status === "repeat"}&ordering=${filters?.ordering || "-id"}&limit=${
+        filters?.limit || 0
+      }&offset=${filters?.offset}`,
     )
       .then(response => {
         const t = response?.data?.results?.length ? response?.data?.results : [];
@@ -217,7 +219,7 @@ function App({ history }) {
   };
 
   const loadMore = link => {
-    setloading(true);
+    // setloading(true);
     getData(link)
       .then(response => {
         const t = response?.data?.results?.length ? response?.data?.results : [];
@@ -232,8 +234,8 @@ function App({ history }) {
       })
       .catch(error => {
         console.log("error", error);
-      })
-      .finally(() => setloading(false));
+      });
+    // .finally(() => setloading(false));
   };
 
   useEffect(() => {
@@ -252,6 +254,7 @@ function App({ history }) {
   ]);
 
   useEffect(() => {
+    // setloading(true);
     setSelectedTag(filters?.status);
   }, [filters?.status]);
 
@@ -452,6 +455,7 @@ function App({ history }) {
   };
 
   const handleTagChange = e => {
+    setloading(true);
     if (e.currentTarget.id === filters?.status) return;
     setRows([]);
     const statu = e.currentTarget.id;
@@ -459,15 +463,6 @@ function App({ history }) {
     setSelectedTag(statu);
     let newUrl = "";
     switch (statu) {
-      case "all_orders":
-        newUrl += ``;
-        break;
-      case "repeat":
-        newUrl += `?&is_repeat=true&ordering=-last_updated`; //&limit=${rowsPerPage}&offset=${page * rowsPerPage}
-        break;
-      case "shipped":
-        newUrl += `?&status=${statu}`; //&limit=${rowsPerPage}&offset=${page * rowsPerPage}
-        break;
       default: //&limit=${rowsPerPage}&offset=${page * rowsPerPage}
         newUrl += `?&status=${statu}`;
         break;
@@ -1449,12 +1444,12 @@ function App({ history }) {
               <td>
                 <FormattedMessage id="totalRecord" defaultMessage="Total Record" />:
               </td>
-              <td>{count}</td>
+              <td>{loading ? "Updating" : count}</td>
               <TablePagination
                 rowsPerPageOptions={[150]}
                 colSpan={22}
-                count={count}
-                rowsPerPage={count}
+                count={loading ? 0 : count}
+                rowsPerPage={loading ? 150 : count}
                 page={1}
                 SelectProps={{
                   inputProps: { "aria-label": "rows per page" },

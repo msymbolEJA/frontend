@@ -10,7 +10,7 @@ import FormControl from "@material-ui/core/FormControl";
 import SearchIcon from "@material-ui/icons/Search";
 import useMediaQuery from "@material-ui/core/useMediaQuery";
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(theme => ({
   root: {
     width: "100%",
     overflowX: "auto",
@@ -32,13 +32,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const CustomButtonGroup = ({
-  selectedTag,
-  handleTagChange,
-  tagsData,
-  searchHandler,
-  loading,
-}) => {
+const CustomButtonGroup = ({ selectedTag, handleTagChange, tagsData, searchHandler, loading }) => {
   const classes = useStyles();
   const { formatMessage } = useIntl();
   const myInputRef = useRef(null);
@@ -52,15 +46,14 @@ const CustomButtonGroup = ({
           marginTop: mobileView ? "3rem" : "1rem",
         }}
       >
-        {" "}
-        {tagsData.map((tag) => (
+        {tagsData.map(tag => (
           <Button
             className={classes.btn}
             id={tag}
             key={tag}
             checked={selectedTag?.indexOf(tag) > -1}
-            disabled={loading}
-            onClick={(e) => handleTagChange(e)}
+            disabled={loading || selectedTag === tag}
+            onClick={e => handleTagChange(e)}
             variant="contained"
             style={{
               backgroundColor: selectedTag === tag ? "#3F51B5" : null,
@@ -68,15 +61,9 @@ const CustomButtonGroup = ({
             }}
           >
             <FormattedMessage
-              id={
-                tag?.replace("_", " ") === "awaiting"
-                  ? "approved"
-                  : tag?.replace("_", " ")
-              }
+              id={tag?.replace("_", " ") === "awaiting" ? "approved" : tag?.replace("_", " ")}
               defaultMessage={
-                tag?.replace("_", " ") === "awaiting"
-                  ? "APPROVED"
-                  : tag?.replace("_", " ")
+                tag?.replace("_", " ") === "awaiting" ? "APPROVED" : tag?.replace("_", " ")
               }
             />
           </Button>
@@ -85,10 +72,11 @@ const CustomButtonGroup = ({
       <div>
         <Button
           className={classes.btn}
-          disabled={loading}
           id="all_orders"
           key="all_orders"
-          onClick={(e) => handleTagChange(e)}
+          onClick={e => handleTagChange(e)}
+          checked={selectedTag === "all_orders"}
+          disabled={loading || selectedTag === "all_orders"}
           variant="contained"
           style={{
             backgroundColor: selectedTag === "all_orders" ? "#3F51B5" : null,
@@ -99,10 +87,11 @@ const CustomButtonGroup = ({
         </Button>
         <Button
           className={classes.btn}
-          disabled={loading}
           id="repeat"
           key="repeat"
-          onClick={(e) => handleTagChange(e)}
+          onClick={e => handleTagChange(e)}
+          checked={selectedTag === "repeat"}
+          disabled={loading || selectedTag === "repeat"}
           variant="contained"
           style={{
             backgroundColor: selectedTag === "repeat" ? "#3F51B5" : null,

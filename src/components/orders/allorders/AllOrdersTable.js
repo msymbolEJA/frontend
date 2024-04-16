@@ -69,7 +69,6 @@ const useStyles = makeStyles(theme => ({
     overflowX: "auto",
   },
   container: {
-    maxHeight: "83vh",
     overflowX: "initial",
   },
   table: {
@@ -134,7 +133,7 @@ function AllOrdersTable() {
   const history = useHistory();
   const [allPdf, setAllPdf] = useState();
   const [refreshTable, setRefreshTable] = useState(false);
-  const [loading, setloading] = useState(false);
+  const [loading, setloading] = useState(true);
   const [searchWord, setSearchWord] = useState("");
   const [dialog, setDialog] = useState({ statu: "", id: "", open: false });
 
@@ -188,11 +187,15 @@ function AllOrdersTable() {
         filters.ordering = "-last_updated";
       } else filters.ordering = "-id";
 
-      const url = `${BASE_URL}etsy/orders/?${`status=${filters?.status || "awaiting"}`}&is_repeat=${
-        filters?.is_repeat
-      }&is_followup=${filters?.is_followup}&country_filter=${countryFilter}&ordering=${
-        filters?.ordering
-      }&limit=${filters?.limit || 0}&offset=${filters?.offset}`;
+      const url = `${BASE_URL}etsy/orders/?${
+        filters?.status !== "all_orders" && filters?.status !== "repeat"
+          ? `status=${filters?.status}`
+          : `status=awaiting`
+      }&is_repeat=${filters?.status === "repeat"}&is_followup=${
+        filters?.is_followup
+      }&country_filter=${countryFilter}&ordering=${filters?.ordering}&limit=${
+        filters?.limit || 0
+      }&offset=${filters?.offset}`;
 
       getData(url)
         .then(response => {
@@ -200,9 +203,7 @@ function AllOrdersTable() {
 
           const ft =
             filters?.status === "in_progress"
-              ? t.filter(
-                  item => !currentBarcodeList.includes(item.id.toString()),
-                )
+              ? t.filter(item => !currentBarcodeList.includes(item.id.toString()))
               : t;
 
           setRows(ft);
@@ -231,9 +232,7 @@ function AllOrdersTable() {
 
         const ft =
           filters?.status === "in_progress"
-            ? t.filter(
-                item => !currentBarcodeList.includes(item.id.toString()),
-              )
+            ? t.filter(item => !currentBarcodeList.includes(item.id.toString()))
             : t;
 
         const concatted = copyRows.concat(ft);
@@ -291,17 +290,8 @@ function AllOrdersTable() {
 
     let newUrl = "";
     switch (statu) {
-      case "all_orders":
-        newUrl += ``;
-        break;
       case "repeat":
-        newUrl += `?&is_repeat=true`; //&limit=${rowsPerPage}&offset=${page * rowsPerPage}
-        break;
-      case "followUp":
-        newUrl += `?&is_followup=true`; //&limit=${rowsPerPage}&offset=${page * rowsPerPage}
-        break;
-      case "shipped":
-        newUrl += `?&status=${statu}`; //&limit=${rowsPerPage}&offset=${page * rowsPerPage}
+        newUrl += `?status=${statu}&ordering=-last_updated`; //&limit=${rowsPerPage}&offset=${page * rowsPerPage}
         break;
       default: //&limit=${rowsPerPage}&offset=${page * rowsPerPage}
         newUrl += `?&status=${statu}`;
@@ -969,12 +959,12 @@ function AllOrdersTable() {
               <td>
                 <FormattedMessage id="totalRecord" defaultMessage="Total Record" />:
               </td>
-              <td>{count}</td>
+              <td>{loading ? "Updating" : count}</td>
               <TablePagination
                 rowsPerPageOptions={[150]}
                 colSpan={22}
-                count={count}
-                rowsPerPage={count}
+                count={loading ? 0 : count}
+                rowsPerPage={loading ? 150 : count}
                 page={1}
                 SelectProps={{
                   inputProps: { "aria-label": "rows per page" },

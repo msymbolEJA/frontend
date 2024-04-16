@@ -81,14 +81,14 @@ const CustomButtonGroup = ({
         marginTop: mobileView ? "3rem" : "1rem",
       }}
     >
-      {statusTags.map((tag) => (
+      {statusTags.map(tag => (
         <Button
           className={classes.btn}
-          disabled={loading}
           id={tag}
           key={tag}
           checked={selectedTag?.indexOf(tag) > -1}
-          onClick={(e) => handleTagChange(e)}
+          disabled={loading || selectedTag === tag}
+          onClick={e => handleTagChange(e)}
           variant="contained"
           style={{
             backgroundColor: selectedTag === tag ? "#3F51B5" : null,
@@ -96,15 +96,9 @@ const CustomButtonGroup = ({
           }}
         >
           <FormattedMessage
-            id={
-              tag?.replace("_", " ") === "awaiting"
-                ? "approved"
-                : tag?.replace("_", " ")
-            }
+            id={tag?.replace("_", " ") === "awaiting" ? "approved" : tag?.replace("_", " ")}
             defaultMessage={
-              tag?.replace("_", " ") === "awaiting"
-                ? "approved"
-                : tag?.replace("_", " ")
+              tag?.replace("_", " ") === "awaiting" ? "approved" : tag?.replace("_", " ")
             }
           />
         </Button>
