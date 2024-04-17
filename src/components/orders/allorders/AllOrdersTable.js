@@ -33,6 +33,7 @@ import { getQueryParams } from "../../../helper/getQueryParams";
 import CustomDialog from "./CustomDialog";
 import EditableTableCell from "../../tableitems/EditableTableCell";
 import ShopifyColumns, { ShopifyColumnValues } from "./ShopifyColumns";
+import CustomCountryButtonGroup from "./CustomCountryButtonGroup";
 
 const BASE_URL = process.env.REACT_APP_BASE_URL;
 // const BASE_URL_MAPPING = process.env.REACT_APP_BASE_URL_MAPPING;
@@ -112,12 +113,17 @@ function AllOrdersTable() {
       localStorage.getItem("localRole") === "null") &&
     !["asya", "umraniye"].includes(localStorage.getItem("workshop")?.toLowerCase());
   const [selected, setSelected] = useState([]);
-  const [countryFilter, setCountryFilter] = useState("all");
   const { user } = useContext(AppContext);
 
   const paramsQuery = getQueryParams();
 
-  const filters = { ...paramsQuery, limit: 150, offset: 0, status: paramsQuery?.status };
+  const filters = {
+    ...paramsQuery,
+    limit: 150,
+    offset: 0,
+    status: paramsQuery?.status,
+    country: paramsQuery?.country || "all",
+  };
 
   const barcodeInputRef = useRef();
   const uploadLabelRef = useRef();
@@ -126,6 +132,7 @@ function AllOrdersTable() {
   const classes = useStyles();
   const [count, setCount] = useState(0);
   const [selectedTag, setSelectedTag] = useState(filters?.status);
+  const [countryFilter, setCountryFilter] = useState(filters?.country || "all");
   const [printError, setPrintError] = useState(false);
   const [isUploadingFile, setIsUploadingFile] = useState(false);
   const [barcodeInput, setBarcodeInput] = useState();
@@ -193,7 +200,7 @@ function AllOrdersTable() {
           : `status=awaiting`
       }&is_repeat=${filters?.status === "repeat"}&is_followup=${
         filters?.is_followup
-      }&country_filter=${countryFilter}&ordering=${filters?.ordering}&limit=${
+      }&country_filter=${filters?.country}&ordering=${filters?.ordering}&limit=${
         filters?.limit || 0
       }&offset=${filters?.offset}`;
 
@@ -212,12 +219,11 @@ function AllOrdersTable() {
 
           setHasScrolledToBottom(false);
         })
+        .then(res => {
+          setloading(false);
+        })
         .catch(error => {
           console.log("error", error);
-        })
-        .finally(() => {
-          // getOrdersInProgress();
-          setloading(false);
         });
     }
   };
@@ -242,11 +248,11 @@ function AllOrdersTable() {
 
         setHasScrolledToBottom(false);
       })
+      .then(res => {
+        setloading(false);
+      })
       .catch(error => {
         console.log("error", error);
-      })
-      .finally(() => {
-        setloading(false);
       });
   };
 
@@ -263,15 +269,18 @@ function AllOrdersTable() {
     filters.is_repeat,
     filters.limit,
     filters.offset,
-    refreshTable,
+    // refreshTable,
     countryFilter,
-    count,
     selectedTag,
   ]);
 
   useEffect(() => {
     setSelectedTag(filters?.status);
   }, [filters?.status]);
+
+  useEffect(() => {
+    setCountryFilter(filters?.country);
+  }, [filters?.country]);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -285,19 +294,31 @@ function AllOrdersTable() {
     setSearchWord("");
     if (e.currentTarget.id === filters?.status) return;
     setRows([]);
-    const statu = e.currentTarget.id || filters?.status;
-    setSelectedTag(statu);
+    const s = e.currentTarget.id || filters?.status;
 
-    let newUrl = "";
-    switch (statu) {
-      case "repeat":
-        newUrl += `?status=${statu}&ordering=-last_updated`; //&limit=${rowsPerPage}&offset=${page * rowsPerPage}
-        break;
-      default: //&limit=${rowsPerPage}&offset=${page * rowsPerPage}
-        newUrl += `?&status=${statu}`;
-        break;
-    }
-    history.push(`/all-orders${newUrl}`);
+    setSelectedTag(s);
+
+    const searchParams = new URLSearchParams(window.location.search);
+
+    searchParams.set("status", s);
+
+    history.push(`/all-orders/?${searchParams?.toString()}`);
+    setPage(0);
+  };
+
+  const handleCountryChange = e => {
+    setSearchWord("");
+    if (e.currentTarget.id === filters?.country) return;
+    setRows([]);
+    const country = e.currentTarget.id || filters?.country;
+    setSelectedTag(country);
+
+    const searchParams = new URLSearchParams(window.location.search);
+
+    searchParams.set("country", country);
+
+    history.push(`/all-orders/?${searchParams?.toString()}`);
+
     setPage(0);
   };
 
@@ -1130,32 +1151,12 @@ function AllOrdersTable() {
             justifyContent: "space-between",
           }}
         >
-          <div>
-            <Button
-              variant="contained"
-              color={countryFilter === "all" ? "primary" : "default"}
-              className={classes.countryFilter}
-              onClick={() => setCountryFilter("all")}
-            >
-              <FormattedMessage id="all" defaultMessage="All" />
-            </Button>
-            <Button
-              variant="contained"
-              color={countryFilter === "usa" ? "primary" : "default"}
-              className={classes.countryFilter}
-              onClick={() => setCountryFilter("usa")}
-            >
-              <FormattedMessage id="usa" defaultMessage="USA" />
-            </Button>
-            <Button
-              variant="contained"
-              color={countryFilter === "international" ? "primary" : "default"}
-              className={classes.countryFilter}
-              onClick={() => setCountryFilter("international")}
-            >
-              <FormattedMessage id="international" defaultMessage="International" />
-            </Button>
-          </div>
+          <CustomCountryButtonGroup
+            selectedTag={filters?.country}
+            handleTagChange={handleCountryChange}
+            tagsData={["all", "usa", "international"]}
+            loading={loading}
+          />
         </div>
         <div
           style={{

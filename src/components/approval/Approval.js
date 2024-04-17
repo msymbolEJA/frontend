@@ -819,11 +819,13 @@ function App({ history }) {
         searchHandler={searchHandler}
         loading={loading}
       />
+      <hr />
       <div
         style={{
           display: "flex",
           color: "#001A33",
-          marginBottom: 16,
+          marginBottom: 8,
+          marginTop: 16,
           fontSize: "2rem",
           marginLeft: 16,
         }}
