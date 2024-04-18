@@ -535,7 +535,6 @@ function AllOrdersTable() {
       return;
     putData(`${BASE_URL}etsy/mapping/${id}/`, data)
       .then(response => {
-        toastSuccessNotify("Item updated successfully");
       })
       .catch(error => {
         console.log(error);

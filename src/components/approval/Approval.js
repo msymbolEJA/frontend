@@ -288,7 +288,6 @@ function App({ history }) {
     setloading(true);
     putData(`${BASE_URL}etsy/mapping/${id}/`, data)
       .then(response => {
-        toastSuccessNotify("Item updated successfully");
         if (data?.status) {
           const copyRows = [...rows];
           const newRows = copyRows?.filter(item => item?.id != id);
@@ -352,7 +351,6 @@ function App({ history }) {
           if (itemInRows) itemInRows.image = res?.data?.image;
 
           setRows(copyRows);
-          toastSuccessNotify("Image uploaded successfully");
         })
         .catch(err => {
           console.log(err);
