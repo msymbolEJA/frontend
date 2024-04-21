@@ -534,8 +534,7 @@ function AllOrdersTable() {
     )
       return;
     putData(`${BASE_URL}etsy/mapping/${id}/`, data)
-      .then(response => {
-      })
+      .then(response => {})
       .catch(error => {
         console.log(error);
         toastErrorNotify("Error, Please try again after refresh the page");
@@ -1016,7 +1015,7 @@ function AllOrdersTable() {
         {selectedTag === "ready" || selectedTag === "shipped" ? (
           <div className={classes.barcodeBox}>
             <div style={{ marginRight: "0.5rem" }}>
-              <BarcodeInput onError={handleError} onScan={handleScan} />
+              {!loading && <BarcodeInput onError={handleError} onScan={handleScan} />}
               <p>
                 <FormattedMessage id="barcode" defaultMessage="Barcode" /> :{" "}
                 {barcodeInput ||
@@ -1032,6 +1031,7 @@ function AllOrdersTable() {
                   id: "barcode",
                   defaultMessage: "Barcode",
                 })}
+                disabled={loading}
                 inputRef={barcodeInputRef}
                 id="outlined-size-small"
                 variant="outlined"
@@ -1107,6 +1107,7 @@ function AllOrdersTable() {
             color="primary"
             className={classes.submit}
             onClick={handleSaveScanned}
+            disabled={loading}
           >
             <FormattedMessage id="saveScanned" />
           </Button>
