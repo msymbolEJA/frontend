@@ -200,9 +200,9 @@ function App({ history }) {
         filters?.status !== "all_orders" && filters?.status !== "repeat"
           ? `status=${filters?.status}`
           : ""
-      }&is_repeat=${filters?.status === "repeat"}&ordering=${filters?.ordering || "-id"}&limit=${
-        filters?.limit || 0
-      }&offset=${filters?.offset}`,
+      }${filters?.status === "repeat" ? "&is_repeat=true" : ""}&ordering=${
+        filters?.ordering || "-id"
+      }&limit=${filters?.limit || 0}&offset=${filters?.offset}`,
     )
       .then(response => {
         const t = response?.data?.results?.length ? response?.data?.results : [];

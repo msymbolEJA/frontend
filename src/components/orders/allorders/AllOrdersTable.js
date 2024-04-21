@@ -198,11 +198,9 @@ function AllOrdersTable() {
         filters?.status !== "all_orders" && filters?.status !== "repeat"
           ? `status=${filters?.status}`
           : `status=awaiting`
-      }&is_repeat=${filters?.status === "repeat"}&is_followup=${
-        filters?.is_followup
-      }&country_filter=${filters?.country}&ordering=${filters?.ordering}&limit=${
-        filters?.limit || 0
-      }&offset=${filters?.offset}`;
+      }&is_followup=${filters?.is_followup}&country_filter=${filters?.country}&ordering=${
+        filters?.ordering
+      }&limit=${filters?.limit || 0}&offset=${filters?.offset}`;
 
       getData(url)
         .then(response => {
