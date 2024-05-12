@@ -142,9 +142,11 @@ export default function CustomizedTables() {
       const formattedData = dataObj
         ? Object.keys(dataObj).flatMap(key => {
             const shipmentData = dataObj[key];
+            console.log("key?.split(" ** ")[1]", key?.split("**")[1]);
             return {
               ...shipmentData,
               refNumber: key,
+              description: key?.split("**")[1],
             };
           })
         : [];
@@ -350,6 +352,7 @@ export default function CustomizedTables() {
               </tr>
             ) : (
               cargoList.map((row, i) => {
+                console.log("row", row);
                 return (
                   <StyledTableRow key={i} onClick={() => handleRowClick(row.id)}>
                     <StyledTableCell align="center">
@@ -359,9 +362,15 @@ export default function CustomizedTables() {
                     <StyledTableCell align="center" component="th" scope="row">
                       {row?.refNumber.split("**")[0]}
                     </StyledTableCell>
-                    <StyledTableCell align="center" component="th" scope="row">
-                      {row?.refNumber.split("**")[1]}
-                    </StyledTableCell>
+                    <EditableTableCell
+                      align="center"
+                      {...{
+                        row,
+                        name: "description",
+                        onChange,
+                      }}
+                    />
+
                     <EditableTableCell
                       align="center"
                       {...{
