@@ -1133,15 +1133,7 @@ function AllOrdersTable() {
           )}
         <div
           style={{
-            display:
-              process.env.REACT_APP_STORE_NAME === "Hilal Serisi" ||
-              process.env.REACT_APP_STORE_NAME === "Linen Serisi" ||
-              process.env.REACT_APP_STORE_NAME === "Kadife-1" ||
-              process.env.REACT_APP_STORE_NAME === "Mina" ||
-              process.env.REACT_APP_STORE_NAME === "Güneş Tekstil" ||
-              process.env.REACT_APP_STORE_NAME === "Yildiz Serisi"
-                ? "flex"
-                : "none",
+            display: "flex",
             color: "#001A33",
             marginBottom: 16,
             marginLeft: 16,
