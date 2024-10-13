@@ -1048,7 +1048,7 @@ function AllOrdersTable() {
   };
 
   const handleGetLabels = () => {
-    postData(`${BASE_URL}usps/createBulkLabel_cargo/`, { ids: [] })
+    postData(`${BASE_URL}usps/createBulkLabel_cargo/`, { ids: rows?.map(item => item?.id) })
       .then(res => {
         toastSuccessNotify("Successfully created labels!");
         console.log(res?.data);
