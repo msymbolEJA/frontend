@@ -34,6 +34,7 @@ import CustomDialog from "./CustomDialog";
 import EditableTableCell from "../../tableitems/EditableTableCell";
 import ShopifyColumns, { ShopifyColumnValues } from "./ShopifyColumns";
 import CustomCountryButtonGroup from "./CustomCountryButtonGroup";
+import { indigo } from "@material-ui/core/colors";
 
 const BASE_URL = process.env.REACT_APP_BASE_URL;
 // const BASE_URL_MAPPING = process.env.REACT_APP_BASE_URL_MAPPING;
@@ -49,6 +50,17 @@ const StyledTableCell = withStyles(theme => ({
     fontSize: 14,
   },
 }))(TableCell);
+
+const ColorButton = withStyles(theme => ({
+  root: {
+    backgroundColor: indigo[500],
+    whiteSpace: "nowrap",
+    color: "white",
+    "&:hover": {
+      backgroundColor: indigo[700],
+    },
+  },
+}))(Button);
 
 const StyledTableRow = withStyles(theme => ({
   root: {
@@ -139,6 +151,7 @@ function AllOrdersTable() {
   const [url, setUrl] = useState(`${BASE_URL}etsy/orders/?status=${filters?.status}`);
   const history = useHistory();
   const [allPdf, setAllPdf] = useState();
+  const [allZip, setAllZip] = useState();
   const [refreshTable, setRefreshTable] = useState(false);
   const [loading, setloading] = useState(true);
   const [searchWord, setSearchWord] = useState("");
@@ -202,7 +215,11 @@ function AllOrdersTable() {
         filters?.ordering
       }&limit=${filters?.limit || 0}&offset=${filters?.offset}`;
 
-      getData(url)
+      const labelUrl = `${BASE_URL}/etsy/orders/?is_label_ready=true&is_label=false&country_filter=${filters?.country}&ordering=${
+        filters?.ordering
+      }&limit=${filters?.limit || 0}&offset=${filters?.offset}`;
+
+      getData(filters?.status === "label" ? labelUrl : url)
         .then(response => {
           const t = response?.data?.results?.length ? response?.data?.results : [];
 
@@ -256,7 +273,8 @@ function AllOrdersTable() {
 
   useEffect(() => {
     if (filters?.status === "awaiting") getAllPdfFunc();
-    if (filters?.status === "ready") getOrdersInProgress();
+    if (filters?.status === "label") getAllZipFunc();
+    if (filters?.status === "ready" || filters?.status === "label") getOrdersInProgress();
     getListFunc();
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -330,6 +348,16 @@ function AllOrdersTable() {
       });
   };
 
+  const getAllZipFunc = () => {
+    getAllPdf(`${BASE_URL}usps/all_zip/`)
+      .then(response => {
+        setAllZip(response.data.a);
+        console.log(response.data);
+      })
+      .catch(error => {
+        console.log(error);
+      });
+  };
   const printHandler = () => {
     const data = "";
     let urlPrint;
@@ -793,11 +821,11 @@ function AllOrdersTable() {
                           row["shop"] === "Shopify"
                           ? "#dad0d4"
                           : row["type"]?.includes("14K") || row["explanation"]?.includes("14K")
-                          ? "#ffef8a"
-                          : null
+                            ? "#ffef8a"
+                            : null
                         : row["type"]?.includes("14K") || row["explanation"]?.includes("14K")
-                        ? "#ffef8a"
-                        : null,
+                          ? "#ffef8a"
+                          : null,
                   }}
                 >
                   {filters?.status === "ready" ? (
@@ -999,18 +1027,58 @@ function AllOrdersTable() {
     [selected, rows],
   );
 
+  const handleSaveBarcodes = () => {
+    postData(`${BASE_URL}usps/approved_is_ready_label/`, { ids: currentBarcodeList })
+      .then(res => {
+        localStorage.setItem(`${localStoragePrefix}-barcode_list`, []);
+        localStorage.setItem(`${localStoragePrefix}-sibling_list`, []);
+
+        setCurrentBarcodeList([]);
+        setCurrentSiblingList([]);
+
+        console.log(res?.data);
+      })
+      .catch(({ response }) => {
+        console.log("response", response);
+      })
+      .finally(() => {
+        getOrdersInProgress();
+        getListFunc();
+      });
+  };
+
+  const handleGetLabels = () => {
+    postData(`${BASE_URL}usps/createBulkLabel_cargo/`, { ids: [] })
+      .then(res => {
+        toastSuccessNotify("Successfully created labels!");
+        console.log(res?.data);
+        window.open(res?.data.zip_url, "_blank");
+      })
+      .catch(({ response }) => {
+        console.log("response", response);
+      })
+      .finally(() => {
+        getOrdersInProgress();
+        getAllZipFunc();
+        getListFunc();
+      });
+  };
+
+  const updatedTags = [...tagsData];
+  updatedTags.splice(3, 0, "label");
+
   return (
     <div>
       <Paper className={classes.root}>
         <CustomButtonGroup
           selectedTag={filters?.status}
           handleTagChange={handleTagChange}
-          tagsData={tagsData}
+          tagsData={updatedTags}
           nonAdminTagsData={nonAdminTagsData}
           searchHandler={searchHandler}
           loading={loading}
         />
-        {selectedTag === "ready" || selectedTag === "shipped" ? (
+        {selectedTag === "ready" || selectedTag === "shipped" || selectedTag === "label" ? (
           <div className={classes.barcodeBox}>
             <div style={{ marginRight: "0.5rem" }}>
               {!loading && <BarcodeInput onError={handleError} onScan={handleScan} />}
@@ -1039,7 +1107,12 @@ function AllOrdersTable() {
             </div>
           </div>
         ) : null}
-        <div style={{ display: filters?.status === "ready" ? "block" : "none" }}>
+
+        <div
+          style={{
+            display: filters?.status === "ready" || filters?.status === "label" ? "block" : "none",
+          }}
+        >
           <hr />
           <div
             style={{
@@ -1099,16 +1172,30 @@ function AllOrdersTable() {
                 : null}
             </div>
           </div>
-          <Button
-            type="submit"
-            variant="contained"
-            color="primary"
-            className={classes.submit}
-            onClick={handleSaveScanned}
-            disabled={loading}
-          >
-            <FormattedMessage id="saveScanned" />
-          </Button>
+
+          {filters?.status === "ready" ? (
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              className={classes.submit}
+              onClick={handleSaveScanned}
+              disabled={loading}
+            >
+              <FormattedMessage id="saveScanned" />
+            </Button>
+          ) : (
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              className={classes.submit}
+              onClick={handleSaveBarcodes}
+              disabled={loading}
+            >
+              <FormattedMessage id="saveLabels" defaultMessage="Save Labels" />
+            </Button>
+          )}
         </div>
         <hr />
         {selectedTag === "in_progress" &&
@@ -1221,6 +1308,34 @@ function AllOrdersTable() {
             allPdf?.map((pdf, index) => (
               <div key={`${index}${pdf}`}>
                 <a href={`${BASE_URL}media/pdf/bulk/${pdf}`} target="_blank" rel="noreferrer">
+                  {pdf}
+                </a>
+              </div>
+            ))
+          ) : (
+            <h2>
+              <FormattedMessage id="dontHaveAnyLabel" defaultMessage="Dont have any label!" />
+            </h2>
+          )}
+        </>
+      ) : null}
+      {filters?.status === "label" ? (
+        <>
+          <Button
+            variant="contained"
+            color="primary"
+            className={classes.print}
+            onClick={handleGetLabels}
+          >
+            <FormattedMessage id="getLabels" defaultMessage="getLabels" />
+          </Button>
+          <h1>
+            <FormattedMessage id="labels" defaultMessage="Labels" />
+          </h1>
+          {allZip ? (
+            allZip?.map((pdf, index) => (
+              <div key={`${index}${pdf}`}>
+                <a href={`${BASE_URL}media/easypost/${pdf}`} target="_blank" rel="noreferrer">
                   {pdf}
                 </a>
               </div>

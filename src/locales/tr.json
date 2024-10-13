@@ -210,5 +210,9 @@
   "MISSING 14K COSTS": "EKSİK 14K FİYAT",
   "MISSING SILVER COSTS": "EKSİK GÜMÜŞ FİYAT",
   "MISSING SILVER QTY COSTS": "EKSİK GÜMÜŞ ADET FİYAT",
-  "to_ship": "to ship"
+  "to_ship": "to ship",
+  "international": "INT/EXPRESS",
+  "close": "Kapama",
+  "saveLabels": "Labelları Kaydet",
+  "getLabels": "Label Al"
 }

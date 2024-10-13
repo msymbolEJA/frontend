@@ -55,6 +55,8 @@ const CustomButtonGroup = ({
   const mobileView = useMediaQuery("(max-width:1024px)");
 
   const { isAdmin } = useContext(AppContext);
+
+  console.log("isAdmin", isAdmin)
   const isBeyazit =
     (localStorage.getItem("localRole") === "workshop_manager" ||
       !localStorage.getItem("localRole") ||

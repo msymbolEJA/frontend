@@ -19,6 +19,7 @@ export const tagsData = isStoreTextile ? tagsDataLinen : tagsDataOther;
 export const nonAdminTagsData = [
   "awaiting",
   "in_progress",
+  "label",
   "ready",
   "in_transit",
   "cancelled",

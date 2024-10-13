@@ -7,7 +7,7 @@ import TableContainer from "@material-ui/core/TableContainer";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
-import { green } from "@material-ui/core/colors";
+import { cyan, green, pink } from "@material-ui/core/colors";
 import { makeStyles, withStyles } from "@material-ui/core/styles";
 import DownloadFile from "@material-ui/icons/GetApp";
 import moment from "moment";
@@ -57,6 +57,18 @@ const ColorButton = withStyles(theme => ({
     whiteSpace: "nowrap",
     "&:hover": {
       backgroundColor: green[700],
+    },
+  },
+}))(Button);
+
+
+const ColorButton2 = withStyles(theme => ({
+  root: {
+    backgroundColor: cyan[500],
+    whiteSpace: "nowrap",
+    color: "#fff",
+    "&:hover": {
+      backgroundColor: cyan[700],
     },
   },
 }))(Button);
@@ -225,7 +237,10 @@ export default function CustomizedTables() {
         ? `/etsy/cancelCargo/${selectedItem?.id}/`
         : selectedItem?.action === "to_ship"
         ? `/etsy/to_ship/${selectedItem?.id}/`
-        : null;
+        : selectedItem?.action === "close"
+        ? `/usps/bulk_close_orders/${selectedItem?.id}/`
+        : "";
+        
     api(url, "get")
       .then(response => {
         toastSuccessNotify(response?.data?.message || response.data);
@@ -497,6 +512,16 @@ export default function CustomizedTables() {
                         >
                           <FormattedMessage id="to_ship" defaultMessage="to_ship" />
                         </ColorButton>
+                         <br />
+                        <br />
+                        <ColorButton2
+                          variant="contained"
+                          size="small"
+                          onClick={e => handleConfirmModal(e, row.id, "close")}
+                          color=""
+                        >
+                          <FormattedMessage id="close" defaultMessage="close" />
+                        </ColorButton2>
                       </StyledTableCell>
                     )}
                   </StyledTableRow>
