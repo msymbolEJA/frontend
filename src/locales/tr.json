@@ -135,6 +135,7 @@
   "cargoDate": "Kargo Tarihi",
   "statusNotInProgress": "Sipariş işlemde değil!!!",
   "lastScannedOrder": "Son okutulan ürünler:",
+  "lastScannedLabel": "Son okutulan labellar:",
   "SKU": "SKU",
   "ok": "TAMAM",
   "uploadLabel": "Etiket yükle",

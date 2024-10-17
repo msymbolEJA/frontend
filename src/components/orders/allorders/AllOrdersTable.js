@@ -119,6 +119,14 @@ function AllOrdersTable() {
   const [currentSiblingList, setCurrentSiblingList] = useState(
     JSON.parse(localStorage.getItem(`${localStoragePrefix}-sibling_list`) || "[]"),
   );
+
+  const [currentLabelList, setCurrentLabelList] = useState(
+    JSON.parse(localStorage.getItem(`${localStoragePrefix}-label_list`) || "[]"),
+  );
+  const [currentLabelSiblingList, setCurrentLabelSiblingList] = useState(
+    JSON.parse(localStorage.getItem(`${localStoragePrefix}-label_sibling_list`) || "[]"),
+  );
+
   const isBeyazit =
     (localStorage.getItem("localRole") === "workshop_manager" ||
       !localStorage.getItem("localRole") ||
@@ -457,6 +465,39 @@ function AllOrdersTable() {
     );
   };
 
+  const getSiblingsForLabel = async id => {
+    const currentOrder = rows.filter(item => item.id.toString() === id)?.[0];
+    let currentReceiptId = currentOrder?.receipt_id;
+    if (currentOrder?.item_index === "1/1") return null;
+    let siblings = [];
+
+    await globalSearch(`${BASE_URL}etsy/mapping/?receipt__receipt_id=${currentReceiptId}`).then(
+      response => {
+        if (response?.data?.results?.length)
+          siblings = response?.data?.results
+            .map(item => item.id)
+            .filter(item => item.toString() !== id.toString());
+        localStorage.setItem(
+          `${localStoragePrefix}-label_sibling_list`,
+          JSON.stringify([
+            ...currentLabelSiblingList,
+            {
+              id,
+              siblings,
+            },
+          ]),
+        );
+        setCurrentLabelSiblingList([
+          ...currentLabelSiblingList,
+          {
+            id,
+            siblings,
+          },
+        ]);
+      },
+    );
+  };
+
   const checkOrderIfInProgress = id => {
     let isInProgress = false;
     const ordersInProgressLS = [...inProggressItems];
@@ -493,8 +534,30 @@ function AllOrdersTable() {
     setBarcodeInput(null);
   };
 
+  const checkLabel = id => {
+    if (!currentLabelList.includes(id)) {
+      getData(`${BASE_URL}etsy/orders/${id}/`)
+        .then(response => {
+          getSiblingsForLabel(id);
+          localStorage.setItem(
+            `${localStoragePrefix}-label_list`,
+            JSON.stringify([...currentLabelList, id]),
+          );
+          setCurrentLabelList([...currentLabelList, id]);
+        })
+        .catch(error => {
+          console.log("error", error);
+        });
+
+      barcodeInputRef.current.value = null;
+      setBarcodeInput(null);
+    }
+  };
   useEffect(() => {
-    if (barcodeInput) checkOrderIfInProgress(barcodeInput);
+    if (barcodeInput) {
+      if (filters.status === "ready") checkOrderIfInProgress(barcodeInput);
+      else if (filters.status === "label") checkLabel(barcodeInput);
+    }
     // eslint-disable-next-line
   }, [barcodeInput]);
 
@@ -503,12 +566,22 @@ function AllOrdersTable() {
     setCurrentBarcodeList([]);
   };
 
+  const handleClearLabelList = () => {
+    localStorage.setItem(`${localStoragePrefix}-label_list`, "");
+    setCurrentLabelList([]);
+  };
+
   const removeItemfromBarcodeList = id => {
     const fb = currentBarcodeList.filter(i => i !== id.toString());
     localStorage.setItem(`${localStoragePrefix}-barcode_list`, JSON.stringify(fb));
     setCurrentBarcodeList(fb);
   };
 
+  const removeItemfromLabelList = id => {
+    const fb = currentLabelList.filter(i => i !== id.toString());
+    localStorage.setItem(`${localStoragePrefix}-label_list`, JSON.stringify(fb));
+    setCurrentLabelList(fb);
+  };
   const handleSaveScanned = () => {
     postData(`${BASE_URL}etsy/approved_all_ready/`, { ids: currentBarcodeList })
       .then(res => {
@@ -613,6 +686,13 @@ function AllOrdersTable() {
     getOrdersInProgress();
   };
 
+  const removeFuncLabel = id => {
+    handleRowChange(id, { is_label_ready: false });
+
+    setTimeout(() => {
+      getListFunc();
+    }, 500);
+  };
   const handleLabelUpload = e => {
     e.stopPropagation();
     let fs = e.target.files[0];
@@ -799,7 +879,7 @@ function AllOrdersTable() {
               <StyledTableCell align="center">
                 <FormattedMessage id="image" defaultMessage="Image" />
               </StyledTableCell>
-              {selectedTag === "ready" ? (
+              {selectedTag === "ready" || selectedTag === "label" ? (
                 <StyledTableCell align="center">
                   <FormattedMessage id="remove" defaultMessage="Remove" />
                 </StyledTableCell>
@@ -995,6 +1075,23 @@ function AllOrdersTable() {
                       </Button>
                     </td>
                   ) : null}
+
+                  {selectedTag === "label" ? (
+                    <td>
+                      <Button
+                        variant="contained"
+                        color="secondary"
+                        className={classes.print}
+                        onClick={e => {
+                          e.stopPropagation();
+                          removeFuncLabel(row.id);
+                        }}
+                        size="small"
+                      >
+                        <FormattedMessage id="remove" defaultMessage="Remove" />
+                      </Button>
+                    </td>
+                  ) : null}
                 </StyledTableRow>
               ))}
             </TableBody>
@@ -1028,13 +1125,13 @@ function AllOrdersTable() {
   );
 
   const handleSaveBarcodes = () => {
-    postData(`${BASE_URL}usps/approved_is_ready_label/`, { ids: currentBarcodeList })
+    postData(`${BASE_URL}usps/approved_is_ready_label/`, { ids: currentLabelList })
       .then(res => {
-        localStorage.setItem(`${localStoragePrefix}-barcode_list`, []);
-        localStorage.setItem(`${localStoragePrefix}-sibling_list`, []);
+        localStorage.setItem(`${localStoragePrefix}-label_list`, []);
+        localStorage.setItem(`${localStoragePrefix}-label_sibling_list`, []);
 
-        setCurrentBarcodeList([]);
-        setCurrentSiblingList([]);
+        setCurrentLabelList([]);
+        setCurrentLabelSiblingList([]);
 
         console.log(res?.data);
       })
@@ -1042,7 +1139,6 @@ function AllOrdersTable() {
         console.log("response", response);
       })
       .finally(() => {
-        getOrdersInProgress();
         getListFunc();
       });
   };
@@ -1123,52 +1219,69 @@ function AllOrdersTable() {
               marginLeft: 16,
             }}
           >
-            <FormattedMessage id="totalScanned" />: {currentBarcodeList?.length || 0}
+            <FormattedMessage id="totalScanned" />:{" "}
+            {filters?.status === "label" ? currentLabelList?.length : currentBarcodeList?.length}
           </div>
           <div style={{ display: "flex", textAlign: "left" }}>
             <div style={{ display: "inline-block", marginLeft: 16 }}>
               <p style={{ margin: 0 }}>
-                <FormattedMessage id="lastScannedOrder" />
+                <FormattedMessage
+                  id={filters?.status === "label" ? "lastScannedLabel" : "lastScannedOrder"}
+                />
               </p>
-              <Button color="primary" onClick={handleClearBarcodeList}>
+              <Button
+                color="primary"
+                onClick={
+                  filters?.status === "label" ? handleClearLabelList : handleClearBarcodeList
+                }
+              >
                 <FormattedMessage id="clear" />
               </Button>
             </div>
             <div style={{ display: "inline-flex", flexWrap: "wrap" }}>
-              {currentBarcodeList?.length
-                ? currentBarcodeList?.map(item => (
-                    <p
-                      key={item}
-                      style={{
-                        border: "1px blue solid",
-                        borderRadius: 4,
-                        color: "blue",
-                        margin: "0 5px",
-                        padding: "0 5px",
-                        fontWeight: "bold",
-                        height: "23px",
-                        cursor: "pointer",
-                      }}
-                      onClick={() => removeItemfromBarcodeList(item)}
-                    >
-                      {item}
-                      {currentSiblingList
-                        .filter(cs => cs?.id?.toString() === item?.toString())
-                        .map(s =>
-                          s.siblings.map((m, index) => (
-                            <span
-                              style={{
-                                color: "black",
-                                fontStyle: "italic",
-                                fontSize: "0.8rem",
-                              }}
-                            >
-                              {`-${m}`}
-                            </span>
-                          )),
-                        )}
-                    </p>
-                  ))
+              {(filters?.status === "label" ? currentLabelList : currentBarcodeList)?.length
+                ? (filters?.status === "label" ? currentLabelList : currentBarcodeList)?.map(
+                    item => (
+                      <p
+                        key={item}
+                        style={{
+                          border: "1px blue solid",
+                          borderRadius: 4,
+                          color: "blue",
+                          margin: "0 5px",
+                          padding: "0 5px",
+                          fontWeight: "bold",
+                          height: "23px",
+                          cursor: "pointer",
+                        }}
+                        onClick={() =>
+                          filters?.status === "label"
+                            ? removeItemfromLabelList(item)
+                            : removeItemfromBarcodeList(item)
+                        }
+                      >
+                        {item}
+                        {(filters?.status === "label"
+                          ? currentLabelSiblingList
+                          : currentSiblingList
+                        )
+                          .filter(cs => cs?.id?.toString() === item?.toString())
+                          .map(s =>
+                            s.siblings.map((m, index) => (
+                              <span
+                                style={{
+                                  color: "black",
+                                  fontStyle: "italic",
+                                  fontSize: "0.8rem",
+                                }}
+                              >
+                                {`-${m}`}
+                              </span>
+                            )),
+                          )}
+                      </p>
+                    ),
+                  )
                 : null}
             </div>
           </div>

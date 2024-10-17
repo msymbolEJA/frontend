@@ -106,6 +106,7 @@
   "loading": "Loading...",
   "statusNotInProgress": "Status is not IN_PROGRESS",
   "lastScannedOrder": "Last scanned orders:",
+  "lastScannedLabel": "Last scanned labels:",
   "ok": "OK",
   "uploadLabel": "Upload Label",
   "noLogs": "There are no logs for this order",
