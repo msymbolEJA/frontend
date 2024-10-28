@@ -173,6 +173,8 @@ function AllOrdersTable() {
   const [lastResponse, setLastResponse] = useState(null);
   const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
 
+  const [getLabelsLoading, setGetLabelsLoading] = useState(false);
+
   const getOrdersInProgress = () => {
     getData(`${BASE_URL}etsy/orders/?status=in_progress&limit=${2500}&offset=0`)
       .then(response => {
@@ -1144,6 +1146,7 @@ function AllOrdersTable() {
   };
 
   const handleGetLabels = () => {
+    setGetLabelsLoading(true);
     postData(`${BASE_URL}usps/createBulkLabel_cargo/`, { ids: rows?.map(item => item?.id) })
       .then(res => {
         toastSuccessNotify("Successfully created labels!");
@@ -1157,6 +1160,7 @@ function AllOrdersTable() {
         getOrdersInProgress();
         getAllZipFunc();
         getListFunc();
+        setGetLabelsLoading(false);
       });
   };
 
@@ -1439,8 +1443,13 @@ function AllOrdersTable() {
             color="primary"
             className={classes.print}
             onClick={handleGetLabels}
+            disabled={getLabelsLoading}
           >
-            <FormattedMessage id="getLabels" defaultMessage="getLabels" />
+            {getLabelsLoading ? (
+              "Loading..."
+            ) : (
+              <FormattedMessage id="getLabels" defaultMessage="getLabels" />
+            )}
           </Button>
           <h1>
             <FormattedMessage id="labels" defaultMessage="Labels" />

@@ -92,6 +92,8 @@ export default function SummaryTable({
     history.push(next);
   };
 
+  console.log("data", data);
+
   return (
     <Grid item xs={12} md={6} className={classes.root}>
       <Paper className={classes.paper} onClick={title === "orders" ? null : handleClick}>
