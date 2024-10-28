@@ -439,9 +439,9 @@ const OrderDetails = ({ match }) => {
           </div>
         </TableContainer>
       </Paper>
-      {(userRole === "admin" || userRole === "shop_manager") && (
+      {userRole === "admin" || userRole === "shop_manager" || userRole === "workshop_manager" ? (
         <UpdateDetailsTable row={rows[0]} />
-      )}
+      ) : null}
 
       {rows[0]?.status === "ready" ? (
         <OrderDetailsCargoPage id={match.params.id} setRefresh={setRefresh} />
