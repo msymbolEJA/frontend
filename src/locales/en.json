@@ -170,5 +170,6 @@
   "international": "INT/EXPRESS",
   "close": "close",
   "saveLabels": "Save Labels",
-  "getLabels": "Get Label"
+  "getLabels": "Get Label",
+  "manifest": "Manifest"
 }

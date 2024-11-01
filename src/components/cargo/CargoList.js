@@ -7,7 +7,7 @@ import TableContainer from "@material-ui/core/TableContainer";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import Typography from "@material-ui/core/Typography";
-import { cyan, green, pink } from "@material-ui/core/colors";
+import { cyan, green, pink, teal } from "@material-ui/core/colors";
 import { makeStyles, withStyles } from "@material-ui/core/styles";
 import DownloadFile from "@material-ui/icons/GetApp";
 import moment from "moment";
@@ -69,6 +69,17 @@ const ColorButton2 = withStyles(theme => ({
     color: "#fff",
     "&:hover": {
       backgroundColor: cyan[700],
+    },
+  },
+}))(Button);
+
+const ColorButton3 = withStyles(theme => ({
+  root: {
+    backgroundColor: teal[500],
+    whiteSpace: "nowrap",
+    color: "#fff",
+    "&:hover": {
+      backgroundColor: teal[700],
     },
   },
 }))(Button);
@@ -239,6 +250,8 @@ export default function CustomizedTables() {
         ? `/etsy/to_ship/${selectedItem?.id}/`
         : selectedItem?.action === "close"
         ? `/usps/bulk_close_orders/${selectedItem?.id}/`
+        : selectedItem?.action === "manifest"
+        ? `/usps/bulk_manifest/${selectedItem?.id}/`
         : "";
         
     api(url, "get")
@@ -413,11 +426,11 @@ export default function CustomizedTables() {
                                 key?.toString()?.split(",")?.[2]?.trim() === "True"
                                   ? "#ffc000"
                                   : !key ||
-                                    key?.toString().split(",")?.[1].includes("None") ||
-                                    key?.toString().split(",")?.[1] === " 209" ||
-                                    key?.toString().split(",")?.[1] === " US"
-                                  ? "black"
-                                  : "red",
+                                      key?.toString().split(",")?.[1].includes("None") ||
+                                      key?.toString().split(",")?.[1] === " 209" ||
+                                      key?.toString().split(",")?.[1] === " US"
+                                    ? "black"
+                                    : "red",
                             }}
                           >
                             {key?.toString()?.split(",")[0]}
@@ -512,7 +525,7 @@ export default function CustomizedTables() {
                         >
                           <FormattedMessage id="to_ship" defaultMessage="to_ship" />
                         </ColorButton>
-                         <br />
+                        <br />
                         <br />
                         <ColorButton2
                           variant="contained"
@@ -522,6 +535,16 @@ export default function CustomizedTables() {
                         >
                           <FormattedMessage id="close" defaultMessage="close" />
                         </ColorButton2>
+                        <br />
+                        <br />
+                        <ColorButton3
+                          variant="contained"
+                          size="small"
+                          onClick={e => handleConfirmModal(e, row.id, "manifest")}
+                          color=""
+                        >
+                          <FormattedMessage id="manifest" defaultMessage="manifest" />
+                        </ColorButton3>
                       </StyledTableCell>
                     )}
                   </StyledTableRow>

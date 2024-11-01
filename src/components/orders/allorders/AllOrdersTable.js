@@ -127,6 +127,12 @@ function AllOrdersTable() {
     JSON.parse(localStorage.getItem(`${localStoragePrefix}-label_sibling_list`) || "[]"),
   );
 
+  const [selectedCargo, setSelectedCargo] = useState("usps");
+
+  const handleSelectChange = e => {
+    setSelectedCargo(e.target.value);
+  };
+
   const isBeyazit =
     (localStorage.getItem("localRole") === "workshop_manager" ||
       !localStorage.getItem("localRole") ||
@@ -1147,7 +1153,9 @@ function AllOrdersTable() {
 
   const handleGetLabels = () => {
     setGetLabelsLoading(true);
-    postData(`${BASE_URL}usps/createBulkLabel_cargo/`, { ids: rows?.map(item => item?.id) })
+    postData(`${BASE_URL}usps/createBulkLabel_cargo/?carrier=${selectedCargo || "usps"}`, {
+      ids: rows?.map(item => item?.id),
+    })
       .then(res => {
         toastSuccessNotify("Successfully created labels!");
         console.log(res?.data);
@@ -1166,6 +1174,17 @@ function AllOrdersTable() {
 
   const updatedTags = [...tagsData];
   updatedTags.splice(3, 0, "label");
+
+  const cargo = [
+    {
+      label: "USPS",
+      value: "usps",
+    },
+    {
+      label: "DHL",
+      value: "dhl_ecommerce",
+    },
+  ];
 
   return (
     <div>
@@ -1438,19 +1457,29 @@ function AllOrdersTable() {
       ) : null}
       {filters?.status === "label" ? (
         <>
-          <Button
-            variant="contained"
-            color="primary"
-            className={classes.print}
-            onClick={handleGetLabels}
-            disabled={getLabelsLoading}
-          >
-            {getLabelsLoading ? (
-              "Loading..."
-            ) : (
-              <FormattedMessage id="getLabels" defaultMessage="getLabels" />
-            )}
-          </Button>
+          <div style={{ width: "100%",alignItems: "center", justifyContent: "center", display: "flex", gap: 10 }}>
+            <select value={selectedCargo} onChange={handleSelectChange}>
+              {cargo?.map((item, index) => (
+                <option value={item.value} key={index}>
+                  {item.label}
+                </option>
+              ))}
+            </select>
+
+            <Button
+              variant="contained"
+              color="primary"
+              className={classes.print}
+              onClick={handleGetLabels}
+              disabled={getLabelsLoading}
+            >
+              {getLabelsLoading ? (
+                "Loading..."
+              ) : (
+                <FormattedMessage id="getLabels" defaultMessage="getLabels" />
+              )}
+            </Button>
+          </div>
           <h1>
             <FormattedMessage id="labels" defaultMessage="Labels" />
           </h1>

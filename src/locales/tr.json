@@ -215,5 +215,6 @@
   "international": "INT/EXPRESS",
   "close": "Kapama",
   "saveLabels": "Labelları Kaydet",
-  "getLabels": "Label Al"
+  "getLabels": "Label Al",
+  "manifest": "Manifest"
 }
