@@ -257,6 +257,11 @@ export default function CustomizedTables() {
     api(url, "get")
       .then(response => {
         toastSuccessNotify(response?.data?.message || response.data);
+
+        if (selectedItem?.action === "manifest"){
+          window.open(response?.data?.manifest, "_blank");
+        }
+        
         getListFunc();
       })
       .catch(error => {
