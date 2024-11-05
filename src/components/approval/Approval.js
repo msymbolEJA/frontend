@@ -30,7 +30,7 @@ import {
   statusData,
 } from "../../helper/Constants";
 
-import { putData, getData, globalSearch } from "../../helper/PostData";
+import { putData, getData, globalSearch, getAllPdf } from "../../helper/PostData";
 import TablePaginationActions from "../tableitems/TablePaginationActions";
 import OrderStatus from "../tableitems/CustomSelectCell";
 import UploadFile from "../tableitems/UploadFile";
@@ -109,10 +109,11 @@ const useStyles = makeStyles(theme => ({
   },
   package: {
     display: "flex",
+    flexDirection: "column",
+    gap: 4,
     justifyContent: "center",
     alignItems: "center",
-    height: 80,
-    paddingRight: 20,
+    padding: 20,
     background: "#fff",
     position: "fixed",
     width: "100%",
@@ -168,6 +169,38 @@ function App({ history }) {
 
   const [lastResponse, setLastResponse] = useState(null);
   const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
+
+  const [allZip, setAllZip] = useState([]);
+
+  const [selectedCargo, setSelectedCargo] = useState("usps");
+
+  const [getLabelsLoading, setGetLabelsLoading] = useState(false);
+
+  const handleSelectChange = e => {
+    setSelectedCargo(e.target.value);
+  };
+
+  const cargo = [
+    {
+      label: "USPS",
+      value: "usps",
+    },
+    {
+      label: "DHL",
+      value: "dhl_ecommerce",
+    },
+  ];
+
+  const getAllZipFunc = () => {
+    getAllPdf(`${BASE_URL}usps/admin_all_zip/`)
+      .then(response => {
+        setAllZip(response.data.a);
+        console.log(response.data);
+      })
+      .catch(error => {
+        console.log(error);
+      });
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -239,6 +272,7 @@ function App({ history }) {
   };
 
   useEffect(() => {
+    if (filters?.status === "pending") getAllZipFunc();
     getListFunc();
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -442,13 +476,22 @@ function App({ history }) {
   };
 
   const handlePackage = () => {
-    postData(`${BASE_URL}usps/create_multi_cargo/`, { ids: selectedForPackage })
+    setGetLabelsLoading(true);
+    postData(`${BASE_URL}usps/admin_create_cargo_label/?carrier=${selectedCargo || "usps"}`, {
+      ids: selectedForPackage,
+    })
       .then(res => {
-        window.open(res?.data?.url, "_self");
+        toastSuccessNotify("Successfully created labels!");
+        console.log(res?.data);
+        window.open(res?.data.zip_url, "_blank");
         setSelectedForPackage([]);
       })
       .catch(({ response }) => {
-        toastWarnNotify(response?.data?.detail);
+        console.log("response", response);
+      })
+      .finally(() => {
+        getAllZipFunc();
+        setGetLabelsLoading(false);
       });
   };
 
@@ -535,9 +578,9 @@ function App({ history }) {
     if (selectedIndex === -1) {
       newSelected = selectedForPackage.slice().concat(id);
 
-      if (newSelected.length > 20) {
-        newSelected.shift();
-      }
+      // if (newSelected.length > 20) {
+      //   newSelected.shift();
+      // }
     } else {
       newSelected = selectedForPackage
         .slice(0, selectedIndex)
@@ -1117,10 +1160,10 @@ function App({ history }) {
                         Number(row?.qty?.split(" ")?.[0]) >= 4
                           ? "#ee6363"
                           : (row.status !== "pending") & (row.approved === false)
-                          ? "#FF9494"
-                          : row["type"]?.includes("14K") || row["explanation"]?.includes("14K")
-                          ? "#ffef8a"
-                          : null,
+                            ? "#FF9494"
+                            : row["type"]?.includes("14K") || row["explanation"]?.includes("14K")
+                              ? "#ffef8a"
+                              : null,
                     }}
                   >
                     <FlagAndFavCell
@@ -1338,8 +1381,8 @@ function App({ history }) {
                           process.env.REACT_APP_STORE_NAME_ORJ === "Silveristic"
                             ? "auto"
                             : row.status === "pending"
-                            ? "auto"
-                            : "none",
+                              ? "auto"
+                              : "none",
                         minWidth: 90,
                       }}
                       onClick={e => {
@@ -1463,18 +1506,50 @@ function App({ history }) {
           </TableFooter>
         </Table>
       </TableContainer>
+      {filters?.status === "pending" ? (
+        <>
+          <h1>
+            <FormattedMessage id="labels" defaultMessage="Labels" />
+          </h1>
+          {allZip ? (
+            allZip?.map((pdf, index) => (
+              <div key={`${index}${pdf}`}>
+                <a href={`${BASE_URL}media/easypost/${pdf}`} target="_blank" rel="noreferrer">
+                  {pdf}
+                </a>
+              </div>
+            ))
+          ) : (
+            <h2>
+              <FormattedMessage id="dontHaveAnyLabel" defaultMessage="Dont have any label!" />
+            </h2>
+          )}
+        </>
+      ) : null}
       <ToastContainer style={{ color: "black" }} />
       {selectedForPackage?.length ? (
         <Box component={Paper} elevation={2} className={classes.package}>
-          {selectedForPackage?.length} Items will be packaged{" "}
+          Get Label for {selectedForPackage?.length} Items{" "}
+          <select value={selectedCargo} onChange={handleSelectChange}>
+            {cargo?.map((item, index) => (
+              <option value={item.value} key={index}>
+                {item.label}
+              </option>
+            ))}
+          </select>
           <Button
             color="primary"
             variant="contained"
             size="large"
             style={{ marginLeft: 20 }}
             onClick={handlePackage}
+            disabled={getLabelsLoading}
           >
-            Package
+            {getLabelsLoading ? (
+              "Loading..."
+            ) : (
+              <FormattedMessage id="getLabels" defaultMessage="getLabels" />
+            )}
           </Button>
         </Box>
       ) : null}
