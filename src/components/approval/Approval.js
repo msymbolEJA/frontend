@@ -907,7 +907,7 @@ function App({ history }) {
                 colName="id"
                 setOrderBy={setOrderBy}
               />
-              {process.env.REACT_APP_STORE_NAME_ORJ === "AmazonHandmade" && (
+              {process.env.REACT_APP_STORE_NAME_ORJ === "AmazonHandmade" || process.env.REACT_APP_STORE_NAME_ORJ === "Belky"? (
                 <StyledTableCell
                   align="center"
                   style={{
@@ -928,7 +928,7 @@ function App({ history }) {
                     inputProps={{ "aria-label": "select all" }}
                   />
                 </StyledTableCell>
-              )}
+              ):  null}
               <SortableTableCell
                 property="status"
                 handleRequestSort={handleRequestSort}
@@ -1177,7 +1177,7 @@ function App({ history }) {
                       }}
                     />
 
-                    {process.env.REACT_APP_STORE_NAME_ORJ === "AmazonHandmade" && (
+                    {process.env.REACT_APP_STORE_NAME_ORJ === "AmazonHandmade" || process.env.REACT_APP_STORE_NAME_ORJ === "Belky" ?  (
                       <td
                         style={{
                           padding: 10,
@@ -1202,7 +1202,7 @@ function App({ history }) {
                           inputProps={{ "aria-labelledby": labelId }}
                         />
                       </td>
-                    )}
+                    ): null}
 
                     <td
                       onClick={e => {
