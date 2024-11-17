@@ -907,7 +907,7 @@ function App({ history }) {
                 colName="id"
                 setOrderBy={setOrderBy}
               />
-              {process.env.REACT_APP_STORE_NAME_ORJ === "AmazonHandmade" || process.env.REACT_APP_STORE_NAME_ORJ === "Belky"? (
+              {process.env.REACT_APP_STORE_NAME_ORJ === "AmazonHandmade" || process.env.REACT_APP_STORE_NAME_ORJ === "Belky" || process.env.REACT_APP_STORE_NAME_ORJ === "Silveristic"? (
                 <StyledTableCell
                   align="center"
                   style={{
@@ -1177,7 +1177,9 @@ function App({ history }) {
                       }}
                     />
 
-                    {process.env.REACT_APP_STORE_NAME_ORJ === "AmazonHandmade" || process.env.REACT_APP_STORE_NAME_ORJ === "Belky" ?  (
+                    {process.env.REACT_APP_STORE_NAME_ORJ === "AmazonHandmade" ||
+                    process.env.REACT_APP_STORE_NAME_ORJ === "Belky" ||
+                    process.env.REACT_APP_STORE_NAME_ORJ === "Silveristic" ? (
                       <td
                         style={{
                           padding: 10,
@@ -1202,7 +1204,7 @@ function App({ history }) {
                           inputProps={{ "aria-labelledby": labelId }}
                         />
                       </td>
-                    ): null}
+                    ) : null}
 
                     <td
                       onClick={e => {
