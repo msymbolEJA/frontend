@@ -907,7 +907,10 @@ function App({ history }) {
                 colName="id"
                 setOrderBy={setOrderBy}
               />
-              {process.env.REACT_APP_STORE_NAME_ORJ === "AmazonHandmade" || process.env.REACT_APP_STORE_NAME_ORJ === "Belky" || process.env.REACT_APP_STORE_NAME_ORJ === "Silveristic"? (
+              {process.env.REACT_APP_STORE_NAME_ORJ === "AmazonHandmade" ||
+              process.env.REACT_APP_STORE_NAME_ORJ === "Belky" ||
+              process.env.REACT_APP_STORE_NAME_ORJ === "Silveristic" ||
+              process.env.REACT_APP_STORE_NAME_ORJ === "Shiny" ? (
                 <StyledTableCell
                   align="center"
                   style={{
@@ -928,7 +931,7 @@ function App({ history }) {
                     inputProps={{ "aria-label": "select all" }}
                   />
                 </StyledTableCell>
-              ):  null}
+              ) : null}
               <SortableTableCell
                 property="status"
                 handleRequestSort={handleRequestSort}
@@ -1179,7 +1182,8 @@ function App({ history }) {
 
                     {process.env.REACT_APP_STORE_NAME_ORJ === "AmazonHandmade" ||
                     process.env.REACT_APP_STORE_NAME_ORJ === "Belky" ||
-                    process.env.REACT_APP_STORE_NAME_ORJ === "Silveristic" ? (
+                    process.env.REACT_APP_STORE_NAME_ORJ === "Silveristic" ||
+                    process.env.REACT_APP_STORE_NAME_ORJ === "Shiny" ? (
                       <td
                         style={{
                           padding: 10,
