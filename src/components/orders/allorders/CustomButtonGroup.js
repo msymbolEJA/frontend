@@ -13,7 +13,7 @@ import useMediaQuery from "@material-ui/core/useMediaQuery";
 import { beyazitTagsData } from "../../../helper/Constants";
 
 const NON_SKU = process.env.REACT_APP_NON_SKU === "true";
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(theme => ({
   root: {
     width: "100%",
     marginTop: theme.spacing(3),
@@ -56,19 +56,13 @@ const CustomButtonGroup = ({
 
   const { isAdmin } = useContext(AppContext);
 
-  console.log("isAdmin", isAdmin)
+  console.log("isAdmin", isAdmin);
   const isBeyazit =
     (localStorage.getItem("localRole") === "workshop_manager" ||
       !localStorage.getItem("localRole") ||
       localStorage.getItem("localRole") === "null") &&
-    !["asya", "umraniye"].includes(
-      localStorage.getItem("workshop")?.toLowerCase()
-    );
-  let statusTags = isBeyazit
-    ? beyazitTagsData
-    : isAdmin
-    ? tagsData
-    : nonAdminTagsData;
+    !["asya", "umraniye"].includes(localStorage.getItem("workshop")?.toLowerCase());
+  let statusTags = isBeyazit ? beyazitTagsData : isAdmin ? tagsData : nonAdminTagsData;
 
   let localRole = localStorage.getItem("localRole");
 
@@ -93,7 +87,7 @@ const CustomButtonGroup = ({
           onClick={e => handleTagChange(e)}
           variant="contained"
           style={{
-            backgroundColor: selectedTag === tag ? "#3F51B5" : null,
+            backgroundColor: selectedTag === tag ? (tag === "label" ? "#eb6223" : "#3F51B5") : null,
             color: selectedTag === tag ? "white" : null,
           }}
         >

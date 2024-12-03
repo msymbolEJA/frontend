@@ -42,8 +42,8 @@ const NON_SKU = process.env.REACT_APP_NON_SKU === "true";
 
 const StyledTableCell = withStyles(theme => ({
   head: {
-    backgroundColor: "rgb(100, 149, 237)",
-    color: theme.palette.common.black,
+    backgroundColor: props => (props.isLabel ? "#eb6223" : "rgb(100, 149, 237)"),
+    color: theme.palette.common.white,
     fontWeight: "bold",
   },
   body: {
@@ -770,7 +770,7 @@ function AllOrdersTable() {
           <TableHead>
             <TableRow>
               {filters?.status === "ready" ? (
-                <StyledTableCell align="center">
+                <StyledTableCell align="center" isLabel={filters?.status === "label"}>
                   <Checkbox
                     indeterminate={selected?.length > 0 && selected?.length < rows?.length}
                     checked={rows?.length > 0 && selected?.length === rows?.length}
@@ -779,87 +779,87 @@ function AllOrdersTable() {
                   />
                 </StyledTableCell>
               ) : null}
-              <StyledTableCell align="center">
+              <StyledTableCell align="center" isLabel={filters?.status === "label"}>
                 <FormattedMessage id="receiptId" defaultMessage="Receipt Id" /> /
                 <FormattedMessage id="id" defaultMessage="Id" /> /
                 <FormattedMessage id="index" defaultMessage="Index" />
               </StyledTableCell>
-              <StyledTableCell align="center">
+              <StyledTableCell align="center" isLabel={filters?.status === "label"}>
                 <FormattedMessage id="createdTSZ" defaultMessage="Created" />
                 {" / "}
                 <FormattedMessage id="ready_date" defaultMessage="Approval Date" />
               </StyledTableCell>
 
               {userRole !== "workshop_designer" && userRole !== "workshop_designer2" && (
-                <StyledTableCell align="center">
+                <StyledTableCell align="center" isLabel={filters?.status === "label"}>
                   <FormattedMessage id="buyer" defaultMessage="Buyer" />
                 </StyledTableCell>
               )}
-              {/*                   <StyledTableCell align="center">
+              {/*                   <StyledTableCell align="center" isLabel={filters?.status === "label"}>
                     <FormattedMessage id="supplier" defaultMessage="Supplier" />
                   </StyledTableCell> */}
 
-              {/*               <StyledTableCell align="center">
+              {/*               <StyledTableCell align="center" isLabel={filters?.status === "label"}>
                 <FormattedMessage id="status" defaultMessage="Status" />
               </StyledTableCell> */}
               {NON_SKU ? (
                 <>
-                  <StyledTableCell align="center">
+                  <StyledTableCell align="center" isLabel={filters?.status === "label"}>
                     <FormattedMessage id="type" defaultMessage="Type" />
                   </StyledTableCell>
-                  <StyledTableCell align="center">
+                  <StyledTableCell align="center" isLabel={filters?.status === "label"}>
                     <FormattedMessage id="size" defaultMessage="Size" />
                   </StyledTableCell>
-                  <StyledTableCell align="center">
+                  <StyledTableCell align="center" isLabel={filters?.status === "label"}>
                     <FormattedMessage id="color" defaultMessage="Color" />
                   </StyledTableCell>
 
                   {userRole !== "workshop_manager" && (
-                    <StyledTableCell align="center">
+                    <StyledTableCell align="center" isLabel={filters?.status === "label"}>
                       <FormattedMessage id="explanationMod" defaultMessage="Mod-Explanation" />{" "}
                     </StyledTableCell>
                   )}
                 </>
               ) : (
                 <>
-                  <StyledTableCell align="center">
+                  <StyledTableCell align="center" isLabel={filters?.status === "label"}>
                     <FormattedMessage id="type" defaultMessage="Type" />
                   </StyledTableCell>
                   {userRole !== "workshop_designer" && userRole !== "workshop_designer2" && (
-                    <StyledTableCell align="center">
+                    <StyledTableCell align="center" isLabel={filters?.status === "label"}>
                       <FormattedMessage id="var1" />
                     </StyledTableCell>
                   )}
                   {userRole !== "workshop_designer" && userRole !== "workshop_designer2" && (
-                    <StyledTableCell align="center">
+                    <StyledTableCell align="center" isLabel={filters?.status === "label"}>
                       <FormattedMessage id="var2" />
                     </StyledTableCell>
                   )}
                   {userRole !== "workshop_designer" && userRole !== "workshop_designer2" && (
-                    <StyledTableCell align="center">
+                    <StyledTableCell align="center" isLabel={filters?.status === "label"}>
                       <FormattedMessage id="var3" />
                     </StyledTableCell>
                   )}
-                  <StyledTableCell align="center">
+                  <StyledTableCell align="center" isLabel={filters?.status === "label"}>
                     <FormattedMessage id="var4" />
                   </StyledTableCell>
                   {userRole !== "workshop_designer" && userRole !== "workshop_designer2" && (
-                    <StyledTableCell align="center">
+                    <StyledTableCell align="center" isLabel={filters?.status === "label"}>
                       <FormattedMessage id="var5" />
                     </StyledTableCell>
                   )}
 
                   {userRole !== "workshop_designer" && userRole !== "workshop_designer2" && (
-                    <StyledTableCell align="center">
+                    <StyledTableCell align="center" isLabel={filters?.status === "label"}>
                       <FormattedMessage id="var6" />
                     </StyledTableCell>
                   )}
-                  {/*          <StyledTableCell align="center">
+                  {/*          <StyledTableCell align="center" isLabel={filters?.status === "label"}>
                     <FormattedMessage id="goldGr" />
                   </StyledTableCell> */}
                 </>
               )}
-              <StyledTableCell align="center">
+              <StyledTableCell align="center" isLabel={filters?.status === "label"}>
                 <FormattedMessage id="explanation" defaultMessage="Explanation" />
               </StyledTableCell>
               {selectedTag === "in_progress" &&
@@ -867,7 +867,7 @@ function AllOrdersTable() {
                 process.env.REACT_APP_STORE_NAME_ORJ === "ShinyCustomized" ||
                 process.env.REACT_APP_STORE_NAME_ORJ === "LinenByMN" ||
                 process.env.REACT_APP_STORE_NAME_ORJ === "DALLAS") ? (
-                <StyledTableCell align="center">
+                <StyledTableCell align="center" isLabel={filters?.status === "label"}>
                   <FormattedMessage id="showInGoogleSheet" defaultMessage="Google Sheet?" />
                 </StyledTableCell>
               ) : null}
@@ -880,15 +880,16 @@ function AllOrdersTable() {
                     align="center"
                     onClick={() => sortByGiftMessages()}
                     style={{ cursor: "pointer" }}
+                    isLabel={filters?.status === "label"}
                   >
                     <FormattedMessage id="giftMessage" defaultMessage="Gift Message" />
                   </StyledTableCell>
                 )}
-              <StyledTableCell align="center">
+              <StyledTableCell align="center" isLabel={filters?.status === "label"}>
                 <FormattedMessage id="image" defaultMessage="Image" />
               </StyledTableCell>
               {selectedTag === "ready" || selectedTag === "label" ? (
-                <StyledTableCell align="center">
+                <StyledTableCell align="center" isLabel={filters?.status === "label"}>
                   <FormattedMessage id="remove" defaultMessage="Remove" />
                 </StyledTableCell>
               ) : null}
@@ -1324,7 +1325,11 @@ function AllOrdersTable() {
             <Button
               type="submit"
               variant="contained"
-              color="primary"
+              // color="primary"
+              style={{
+                backgroundColor: "#eb6223",
+                color: "#fff",
+              }}
               className={classes.submit}
               onClick={handleSaveBarcodes}
               disabled={loading}
@@ -1457,7 +1462,15 @@ function AllOrdersTable() {
       ) : null}
       {filters?.status === "label" ? (
         <>
-          <div style={{ width: "100%",alignItems: "center", justifyContent: "center", display: "flex", gap: 10 }}>
+          <div
+            style={{
+              width: "100%",
+              alignItems: "center",
+              justifyContent: "center",
+              display: "flex",
+              gap: 10,
+            }}
+          >
             <select value={selectedCargo} onChange={handleSelectChange}>
               {cargo?.map((item, index) => (
                 <option value={item.value} key={index}>
@@ -1472,6 +1485,10 @@ function AllOrdersTable() {
               className={classes.print}
               onClick={handleGetLabels}
               disabled={getLabelsLoading}
+              style={{
+                backgroundColor: "#eb6223",
+                color: "#fff",
+              }}
             >
               {getLabelsLoading ? (
                 "Loading..."
