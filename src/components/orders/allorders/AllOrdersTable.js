@@ -1185,14 +1185,16 @@ function AllOrdersTable() {
       .then(res => {
         console.log(res?.data);
         window.open(res?.data.zip_url, "_blank");
+        if (res?.data?.differences?.length) {
+          getOrdersInProgress();
+          getAllZipFunc();
+          getListFunc();
+        }
       })
       .catch(({ response }) => {
         console.log("response", response);
       })
       .finally(() => {
-        getOrdersInProgress();
-        getAllZipFunc();
-        getListFunc();
         setGetLabelsLoading(false);
       });
   };
@@ -1528,7 +1530,7 @@ function AllOrdersTable() {
               color="secondary"
               className={classes.print}
               onClick={handleGetMissingLabels}
-              disabled={true}
+              disabled={getLabelsLoading}
             >
               {getLabelsLoading ? (
                 "Loading..."
