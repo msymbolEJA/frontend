@@ -1184,7 +1184,7 @@ function AllOrdersTable() {
     getData(`${BASE_URL}usps/find_missing_label/`)
       .then(res => {
         console.log(res?.data);
-        window.open(res?.data.zip_url, "_blank");
+        // window.open(res?.data.zip_url, "_blank");
         if (res?.data?.differences?.length) {
           getOrdersInProgress();
           getAllZipFunc();
