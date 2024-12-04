@@ -1185,7 +1185,7 @@ function AllOrdersTable() {
       .then(res => {
         console.log(res?.data);
         // window.open(res?.data.zip_url, "_blank");
-        if (res?.data?.differences?.length) {
+        if (res?.data?.difference?.length) {
           getOrdersInProgress();
           getAllZipFunc();
           getListFunc();
