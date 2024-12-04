@@ -168,7 +168,7 @@ function AllOrdersTable() {
   const [allZip, setAllZip] = useState();
   const [refreshTable, setRefreshTable] = useState(false);
   const [loading, setloading] = useState(true);
-  const [inProgressLoading, setInProgressLoading] = useState(true);
+  const [inProgressLoading, setInProgressLoading] = useState(false);
   const [searchWord, setSearchWord] = useState("");
   const [dialog, setDialog] = useState({ statu: "", id: "", open: false });
 
