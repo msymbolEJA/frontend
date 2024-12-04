@@ -216,5 +216,6 @@
   "close": "Kapama",
   "saveLabels": "Labelları Kaydet",
   "getLabels": "Label Al",
+  "getMissingLabels": "Eksik Labelları Getir",
   "manifest": "Manifest"
 }

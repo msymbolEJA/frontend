@@ -168,6 +168,7 @@ function AllOrdersTable() {
   const [allZip, setAllZip] = useState();
   const [refreshTable, setRefreshTable] = useState(false);
   const [loading, setloading] = useState(true);
+  const [inProgressLoading, setInProgressLoading] = useState(true);
   const [searchWord, setSearchWord] = useState("");
   const [dialog, setDialog] = useState({ statu: "", id: "", open: false });
 
@@ -182,6 +183,8 @@ function AllOrdersTable() {
   const [getLabelsLoading, setGetLabelsLoading] = useState(false);
 
   const getOrdersInProgress = () => {
+    setInProgressLoading(true);
+
     getData(`${BASE_URL}etsy/orders/?status=in_progress&limit=${2500}&offset=0`)
       .then(response => {
         const o = response?.data?.results?.length ? response?.data?.results : [];
@@ -189,6 +192,9 @@ function AllOrdersTable() {
       })
       .catch(error => {
         console.log("error", error);
+      })
+      .finally(() => {
+        setInProgressLoading(false);
       });
   };
 
@@ -1110,12 +1116,12 @@ function AllOrdersTable() {
               <td>
                 <FormattedMessage id="totalRecord" defaultMessage="Total Record" />:
               </td>
-              <td>{loading ? "Updating" : count}</td>
+              <td>{loading || inProgressLoading ? "Updating" : count}</td>
               <TablePagination
                 rowsPerPageOptions={[150]}
                 colSpan={22}
-                count={loading ? 0 : count}
-                rowsPerPage={loading ? 150 : count}
+                count={loading || inProgressLoading ? 0 : count}
+                rowsPerPage={loading || inProgressLoading ? 150 : count}
                 page={1}
                 SelectProps={{
                   inputProps: { "aria-label": "rows per page" },
@@ -1173,6 +1179,24 @@ function AllOrdersTable() {
       });
   };
 
+  const handleGetMissingLabels = () => {
+    setGetLabelsLoading(true);
+    getData(`${BASE_URL}usps/find_missing_label/`)
+      .then(res => {
+        console.log(res?.data);
+        window.open(res?.data.zip_url, "_blank");
+      })
+      .catch(({ response }) => {
+        console.log("response", response);
+      })
+      .finally(() => {
+        getOrdersInProgress();
+        getAllZipFunc();
+        getListFunc();
+        setGetLabelsLoading(false);
+      });
+  };
+
   const updatedTags = [...tagsData];
   updatedTags.splice(3, 0, "label");
 
@@ -1196,12 +1220,14 @@ function AllOrdersTable() {
           tagsData={updatedTags}
           nonAdminTagsData={nonAdminTagsData}
           searchHandler={searchHandler}
-          loading={loading}
+          loading={loading || inProgressLoading}
         />
         {selectedTag === "ready" || selectedTag === "shipped" || selectedTag === "label" ? (
           <div className={classes.barcodeBox}>
             <div style={{ marginRight: "0.5rem" }}>
-              {!loading && <BarcodeInput onError={handleError} onScan={handleScan} />}
+              {!loading && !inProgressLoading ? (
+                <BarcodeInput onError={handleError} onScan={handleScan} />
+              ) : null}
               <p>
                 <FormattedMessage id="barcode" defaultMessage="Barcode" /> :{" "}
                 {barcodeInput ||
@@ -1217,7 +1243,7 @@ function AllOrdersTable() {
                   id: "barcode",
                   defaultMessage: "Barcode",
                 })}
-                disabled={loading}
+                disabled={loading || inProgressLoading}
                 inputRef={barcodeInputRef}
                 id="outlined-size-small"
                 variant="outlined"
@@ -1317,7 +1343,7 @@ function AllOrdersTable() {
               color="primary"
               className={classes.submit}
               onClick={handleSaveScanned}
-              disabled={loading}
+              disabled={loading || inProgressLoading}
             >
               <FormattedMessage id="saveScanned" />
             </Button>
@@ -1332,7 +1358,7 @@ function AllOrdersTable() {
               }}
               className={classes.submit}
               onClick={handleSaveBarcodes}
-              disabled={loading}
+              disabled={loading || inProgressLoading}
             >
               <FormattedMessage id="saveLabels" defaultMessage="Save Labels" />
             </Button>
@@ -1373,7 +1399,7 @@ function AllOrdersTable() {
             selectedTag={filters?.country}
             handleTagChange={handleCountryChange}
             tagsData={["all", "usa", "international"]}
-            loading={loading}
+            loading={loading || inProgressLoading}
           />
         </div>
         <div
@@ -1392,7 +1418,7 @@ function AllOrdersTable() {
             }}
           >
             {userRole === "workshop_designer" ||
-            userRole === "workshop_designer2" ? null : loading ? (
+            userRole === "workshop_designer2" ? null : loading || inProgressLoading ? (
               <FormattedMessage id="updating" />
             ) : (
               <>
@@ -1496,23 +1522,39 @@ function AllOrdersTable() {
                 <FormattedMessage id="getLabels" defaultMessage="getLabels" />
               )}
             </Button>
+
+            <Button
+              variant="contained"
+              color="secondary"
+              className={classes.print}
+              onClick={handleGetMissingLabels}
+              disabled={true}
+            >
+              {getLabelsLoading ? (
+                "Loading..."
+              ) : (
+                <FormattedMessage id="getMissingLabels" defaultMessage="Get Missing Labels" />
+              )}
+            </Button>
           </div>
           <h1>
             <FormattedMessage id="labels" defaultMessage="Labels" />
           </h1>
-          {allZip ? (
-            allZip?.map((pdf, index) => (
-              <div key={`${index}${pdf}`}>
-                <a href={`${BASE_URL}media/easypost/${pdf}`} target="_blank" rel="noreferrer">
-                  {pdf}
-                </a>
-              </div>
-            ))
-          ) : (
-            <h2>
-              <FormattedMessage id="dontHaveAnyLabel" defaultMessage="Dont have any label!" />
-            </h2>
-          )}
+          <div style={{ marginBottom: "3rem" }}>
+            {allZip ? (
+              allZip?.map((pdf, index) => (
+                <div key={`${index}${pdf}`}>
+                  <a href={`${BASE_URL}media/easypost/${pdf}`} target="_blank" rel="noreferrer">
+                    {pdf}
+                  </a>
+                </div>
+              ))
+            ) : (
+              <h2>
+                <FormattedMessage id="dontHaveAnyLabel" defaultMessage="Dont have any label!" />
+              </h2>
+            )}
+          </div>
         </>
       ) : null}
       {filters?.status === "ready" ? (
