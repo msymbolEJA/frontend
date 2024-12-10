@@ -17,6 +17,8 @@ import { FormattedMessage, useIntl } from "react-intl";
 import { AppContext } from "../../../../context/Context";
 import ShopifyColumnHeaders, { ShopifyColumnValues } from "../../allorders/ShopifyColumns";
 import UpdateDetailsTable from "./UpdateDetailsTable";
+import IconButton from "@material-ui/core/IconButton";
+import LinkIcon from "@material-ui/icons/Link";
 
 const NON_SKU = process.env.REACT_APP_NON_SKU === "true";
 const BASE_URL = process.env.REACT_APP_BASE_URL;
@@ -446,8 +448,12 @@ const OrderDetails = ({ match }) => {
       {rows[0]?.status === "ready" ? (
         <OrderDetailsCargoPage id={match.params.id} setRefresh={setRefresh} />
       ) : null}
+
+      {/* Yildiz/Belky/Hilal/Shin       */}
       {rows[0]?.status === "awaiting" ? (
-        <>
+        <div
+          style={{ display: "flex", gap: "1rem", alignItems: "center", justifyContent: "center" }}
+        >
           <Button
             onClick={getPdf}
             variant="contained"
@@ -456,7 +462,21 @@ const OrderDetails = ({ match }) => {
           >
             Print
           </Button>
-        </>
+          {(process.env.REACT_APP_STORE_NAME === "Yildiz Serisi" ||
+            process.env.REACT_APP_STORE_NAME === "Kalpli Serisi" ||
+            process.env.REACT_APP_STORE_NAME === "Hilal Serisi" ||
+            process.env.REACT_APP_STORE_NAME === "Güneş Serisi") &&
+          rows?.[0]?.tracking_label_url ? (
+            <a
+              href={rows?.[0]?.tracking_label_url}
+              className={classes.printSubmit}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Label URL
+            </a>
+          ) : null}
+        </div>
       ) : null}
 
       {["in_progress", "ready", "in_transit", "shipped"].includes(rows[0]?.status) && isPdfExist ? (

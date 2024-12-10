@@ -5,7 +5,7 @@ import { useIntl } from "react-intl";
 
 const NON_SKU = process.env.REACT_APP_NON_SKU === "true";
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(theme => ({
   opt: {
     fontSize: "0.9rem",
     width: "100px",
@@ -23,8 +23,12 @@ const OrderStatus = ({ row, name, onSelectChange }) => {
   let disabledForReadyNProgress =
     !localRole?.includes("workshop") &&
     process.env.REACT_APP_STORE_NAME !== "Kalpli Serisi" &&
-    process.env.REACT_APP_STORE_NAME_ORJ !== "Silveristic" && !NON_SKU &&
+    process.env.REACT_APP_STORE_NAME_ORJ !== "Silveristic" &&
+    !NON_SKU &&
     (row[name] === "in_progress" || row[name] === "ready");
+
+  const canShopManagerUpdate = item =>
+    localRole === "shop_manager" ? ["pending", "awaiting"].includes(item) : true;
 
   // console.log("disabledForReadyNProgress", disabledForReadyNProgress)
 
@@ -51,15 +55,15 @@ const OrderStatus = ({ row, name, onSelectChange }) => {
           // row[name] === "ready"
         } */
         name={name}
-        onChange={(e) => onSelectChange(e, row)}
-        onClick={(e) => e.stopPropagation()}
+        onChange={e => onSelectChange(e, row)}
+        onClick={e => e.stopPropagation()}
       >
         <optgroup>
           {statusData.map((item, index) => (
             <option
               key={`${index}+${item}`}
               value={item}
-              disabled={disabledForReadyNProgress ? "disabled" : ""}
+              disabled={disabledForReadyNProgress || !canShopManagerUpdate(item)}
             >
               {formatMessage({
                 id: item === "awaiting" ? "approved" : item,
