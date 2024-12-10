@@ -451,31 +451,30 @@ const OrderDetails = ({ match }) => {
 
       {/* Yildiz/Belky/Hilal/Shin       */}
       {rows[0]?.status === "awaiting" ? (
-        <div
-          style={{ display: "flex", gap: "1rem", alignItems: "center", justifyContent: "center" }}
+        <Button
+          onClick={getPdf}
+          variant="contained"
+          color="primary"
+          className={classes.printSubmit}
         >
-          <Button
-            onClick={getPdf}
-            variant="contained"
-            color="primary"
+          Print
+        </Button>
+      ) : null}
+
+      {(process.env.REACT_APP_STORE_NAME === "Yildiz Serisi" ||
+        process.env.REACT_APP_STORE_NAME === "Kalpli Serisi" ||
+        process.env.REACT_APP_STORE_NAME === "Hilal Serisi" ||
+        process.env.REACT_APP_STORE_NAME === "Güneş Serisi") &&
+      rows?.[0]?.tracking_label_url ? (
+        <div>
+          <a
+            href={rows?.[0]?.tracking_label_url}
             className={classes.printSubmit}
+            target="_blank"
+            rel="noreferrer"
           >
-            Print
-          </Button>
-          {(process.env.REACT_APP_STORE_NAME === "Yildiz Serisi" ||
-            process.env.REACT_APP_STORE_NAME === "Kalpli Serisi" ||
-            process.env.REACT_APP_STORE_NAME === "Hilal Serisi" ||
-            process.env.REACT_APP_STORE_NAME === "Güneş Serisi") &&
-          rows?.[0]?.tracking_label_url ? (
-            <a
-              href={rows?.[0]?.tracking_label_url}
-              className={classes.printSubmit}
-              target="_blank"
-              rel="noreferrer"
-            >
-              Label URL
-            </a>
-          ) : null}
+            Label URL
+          </a>
         </div>
       ) : null}
 
