@@ -473,7 +473,7 @@ const OrderDetails = ({ match }) => {
             target="_blank"
             rel="noreferrer"
           >
-            Label URL
+            <FormattedMessage id="shippingLabel" defaultMessage="Shipping Label" />
           </a>
         </div>
       ) : null}

@@ -217,5 +217,6 @@
   "saveLabels": "Labelları Kaydet",
   "getLabels": "Label Al",
   "getMissingLabels": "Eksik Labelları Getir",
-  "manifest": "Manifest"
+  "manifest": "Manifest",
+  "shippingLabel": "Kargo Etiketi"
 }

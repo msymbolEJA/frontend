@@ -172,5 +172,6 @@
   "saveLabels": "Save Labels",
   "getLabels": "Get Label",
   "getMissingLabels": "Get Missing Label",
-  "manifest": "Manifest"
+  "manifest": "Manifest",
+  "shippingLabel": "Shipping Label"
 }
