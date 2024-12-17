@@ -62,7 +62,7 @@ const CustomButtonGroup = ({
       !localStorage.getItem("localRole") ||
       localStorage.getItem("localRole") === "null") &&
     !["asya", "umraniye"].includes(localStorage.getItem("workshop")?.toLowerCase());
-  let statusTags = isBeyazit ? beyazitTagsData : isAdmin ? tagsData : nonAdminTagsData;
+  let statusTags = isBeyazit ? beyazitTagsData : isAdmin ? [...tagsData] : [...nonAdminTagsData];
 
   if (!isBeyazit && isLabelStore && isAdmin && !statusTags.includes("label")) statusTags.splice(3, 0, "label");
   else if (!isBeyazit && isLabelStore && !isAdmin && !statusTags.includes("label"))

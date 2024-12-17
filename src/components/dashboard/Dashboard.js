@@ -88,8 +88,8 @@ const Dashboard = () => {
 
       const currentSortingArray =
         userRole === "admin" || userRole === "shop_manager" || userRole === "shop_packer"
-          ? sortingArrayAdmin
-          : sortingArrayUser;
+          ? [...sortingArrayAdmin]
+          : [...sortingArrayUser];
 
       if (isLabelStore && !currentSortingArray.includes("LABEL"))
         currentSortingArray.splice(3, 0, "LABEL");
