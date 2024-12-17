@@ -1,6 +1,6 @@
 export const isStoreTextile = process.env.REACT_APP_NON_SKU === "true";
 
-export const tagsDataOther = [
+export const tagsData = [
   "pending",
   "awaiting",
   "in_progress",
@@ -12,19 +12,15 @@ export const tagsDataOther = [
   "shipped",
 ];
 
-export const tagsDataLinen = [...tagsDataOther.slice(0, 1), "figma", ...tagsDataOther.slice(1)];
-
-export const tagsData = isStoreTextile ? tagsDataLinen : tagsDataOther;
-
 export const nonAdminTagsData = [
   "awaiting",
   "in_progress",
-  "label",
   "ready",
   "in_transit",
   "cancelled",
   "shipped",
 ];
+
 export const beyazitTagsData = ["awaiting", "in_progress", "ready"];
 
 export const statusDataOther = [
@@ -55,11 +51,10 @@ export const USER_TYPE = {
   WORKSHOP_PACKER: "workshop_packer",
 };
 
-export const sortingArrayAdminOther = [
+export const sortingArrayAdmin = [
   "PENDING",
   "AWAITING",
   "IN PROGRESS",
-  "LABEL",
   "READY",
   "IN TRANSIT",
   "WAREHOUSE",
@@ -68,19 +63,11 @@ export const sortingArrayAdminOther = [
   "CANCELLED",
 ];
 
-export const sortingArrayAdminLinen = [
-  ...sortingArrayAdminOther.slice(0, 1),
-  "FIGMA",
-  ...sortingArrayAdminOther.slice(1),
-];
-
-export const sortingArrayAdmin = isStoreTextile ? sortingArrayAdminLinen : sortingArrayAdminOther;
 
 export const sortingArrayUser = [
   "PENDING",
   "AWAITING",
   "IN PROGRESS",
-  "LABEL",
   "READY",
   "IN TRANSIT",
   "CANCELLED",
@@ -261,3 +248,9 @@ export const updateDetailsMappingTable = [
   { id: 5, name: "Tracking Url", objKey: "tracking_url", type: "url" },
   { id: 5, name: "Carrier Name", objKey: "carrier_name", type: "text" },
 ];
+
+export const isLabelStore =
+  process.env.REACT_APP_STORE_NAME === "Yildiz Serisi" ||
+  process.env.REACT_APP_STORE_NAME === "Kalpli Serisi" ||
+  process.env.REACT_APP_STORE_NAME === "Hilal Serisi" ||
+  process.env.REACT_APP_STORE_NAME === "Güneş Serisi";

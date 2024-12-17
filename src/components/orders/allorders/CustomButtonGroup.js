@@ -10,7 +10,7 @@ import InputAdornment from "@material-ui/core/InputAdornment";
 import FormControl from "@material-ui/core/FormControl";
 import SearchIcon from "@material-ui/icons/Search";
 import useMediaQuery from "@material-ui/core/useMediaQuery";
-import { beyazitTagsData } from "../../../helper/Constants";
+import { beyazitTagsData, isLabelStore } from "../../../helper/Constants";
 
 const NON_SKU = process.env.REACT_APP_NON_SKU === "true";
 const useStyles = makeStyles(theme => ({
@@ -63,6 +63,10 @@ const CustomButtonGroup = ({
       localStorage.getItem("localRole") === "null") &&
     !["asya", "umraniye"].includes(localStorage.getItem("workshop")?.toLowerCase());
   let statusTags = isBeyazit ? beyazitTagsData : isAdmin ? tagsData : nonAdminTagsData;
+
+  if (!isBeyazit && isLabelStore && isAdmin && !statusTags.includes("label")) statusTags.splice(3, 0, "label");
+  else if (!isBeyazit && isLabelStore && !isAdmin && !statusTags.includes("label"))
+    statusTags.splice(2, 0, "label");
 
   let localRole = localStorage.getItem("localRole");
 

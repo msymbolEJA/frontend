@@ -25,6 +25,7 @@ import {
   // ThumbUpAlt as ThumbUpAltIcon,
 } from "@material-ui/icons";
 import {
+  isLabelStore,
   repeatReasonsLinen,
   repeatReasonsMenuItemsLinenia,
   statusData,
@@ -907,10 +908,7 @@ function App({ history }) {
                 colName="id"
                 setOrderBy={setOrderBy}
               />
-              {process.env.REACT_APP_STORE_NAME_ORJ === "AmazonHandmade" ||
-              process.env.REACT_APP_STORE_NAME_ORJ === "Belky" ||
-              process.env.REACT_APP_STORE_NAME_ORJ === "Silveristic" ||
-              process.env.REACT_APP_STORE_NAME_ORJ === "Shiny" ? (
+              {isLabelStore ? (
                 <StyledTableCell
                   align="center"
                   style={{
@@ -1180,10 +1178,7 @@ function App({ history }) {
                       }}
                     />
 
-                    {process.env.REACT_APP_STORE_NAME_ORJ === "AmazonHandmade" ||
-                    process.env.REACT_APP_STORE_NAME_ORJ === "Belky" ||
-                    process.env.REACT_APP_STORE_NAME_ORJ === "Silveristic" ||
-                    process.env.REACT_APP_STORE_NAME_ORJ === "Shiny" ? (
+                    {isLabelStore ? (
                       <td
                         style={{
                           padding: 10,
@@ -1512,7 +1507,7 @@ function App({ history }) {
           </TableFooter>
         </Table>
       </TableContainer>
-      {filters?.status === "pending" ? (
+      {isLabelStore && filters?.status === "pending" ? (
         <>
           <h1>
             <FormattedMessage id="labels" defaultMessage="Labels" />
@@ -1533,7 +1528,7 @@ function App({ history }) {
         </>
       ) : null}
       <ToastContainer style={{ color: "black" }} />
-      {selectedForPackage?.length ? (
+      {isLabelStore && selectedForPackage?.length ? (
         <Box component={Paper} elevation={2} className={classes.package}>
           Get Label for {selectedForPackage?.length} Items{" "}
           <select value={selectedCargo} onChange={handleSelectChange}>

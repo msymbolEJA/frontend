@@ -28,7 +28,7 @@ const OrderStatus = ({ row, name, onSelectChange }) => {
     (row[name] === "in_progress" || row[name] === "ready");
 
   const canShopManagerUpdate = item =>
-    localRole === "shop_manager" ? ["pending", "awaiting"  , "cancelled"].includes(item) : true;
+    localRole === "shop_manager" ? ["pending", "awaiting", "cancelled"].includes(item) : true;
 
   // console.log("disabledForReadyNProgress", disabledForReadyNProgress)
 

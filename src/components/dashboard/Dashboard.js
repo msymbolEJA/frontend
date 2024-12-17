@@ -14,7 +14,7 @@ import {
 import Button from "@material-ui/core/Button";
 
 import { getData } from "../../helper/PostData";
-import { sortingArrayAdmin, sortingArrayUser } from "../../helper/Constants";
+import { isLabelStore, sortingArrayAdmin, sortingArrayUser } from "../../helper/Constants";
 import FloatingMenu from "./FloatingMenu";
 // import CostGetter from "./CostGetter";
 
@@ -90,6 +90,9 @@ const Dashboard = () => {
         userRole === "admin" || userRole === "shop_manager" || userRole === "shop_packer"
           ? sortingArrayAdmin
           : sortingArrayUser;
+
+      if (isLabelStore && !currentSortingArray.includes("LABEL"))
+        currentSortingArray.splice(3, 0, "LABEL");
       const newResult2 = currentSortingArray.map((object, i) => {
         let currentObject = newResult.find(x => x.cell1 === object);
         if (!currentObject) currentObject = { cell1: object, cell2: 0 };
@@ -140,8 +143,8 @@ const Dashboard = () => {
     localRole === "admin" || localRole === "shop_manager" || localRole === "shop_packer"
       ? "pending"
       : localRole === "workshop_designer" || localRole === "workshop_designer2"
-      ? "in_progress"
-      : "awaiting";
+        ? "in_progress"
+        : "awaiting";
   // console.log({ localRole });
   // console.log({ newStatu });
 

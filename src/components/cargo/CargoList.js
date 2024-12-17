@@ -21,6 +21,7 @@ import ConfirmDialog from "../otheritems/ConfirmModal";
 import { toastErrorNotify, toastSuccessNotify } from "../otheritems/ToastNotify";
 import EditableTableCell from "./EditableTableCell";
 import { getQueryParams } from "../../helper/getQueryParams";
+import { isLabelStore } from "../../helper/Constants";
 
 const BASE_URL = process.env.REACT_APP_BASE_URL;
 
@@ -530,26 +531,30 @@ export default function CustomizedTables() {
                         >
                           <FormattedMessage id="to_ship" defaultMessage="to_ship" />
                         </ColorButton>
-                        <br />
-                        <br />
-                        <ColorButton2
-                          variant="contained"
-                          size="small"
-                          onClick={e => handleConfirmModal(e, row.id, "close")}
-                          color=""
-                        >
-                          <FormattedMessage id="close" defaultMessage="close" />
-                        </ColorButton2>
-                        <br />
-                        <br />
-                        <ColorButton3
-                          variant="contained"
-                          size="small"
-                          onClick={e => handleConfirmModal(e, row.id, "manifest")}
-                          color=""
-                        >
-                          <FormattedMessage id="manifest" defaultMessage="manifest" />
-                        </ColorButton3>
+                        {isLabelStore ? (
+                          <>
+                            <br />
+                            <br />
+                            <ColorButton2
+                              variant="contained"
+                              size="small"
+                              onClick={e => handleConfirmModal(e, row.id, "close")}
+                              color=""
+                            >
+                              <FormattedMessage id="close" defaultMessage="close" />
+                            </ColorButton2>
+                            <br />
+                            <br />
+                            <ColorButton3
+                              variant="contained"
+                              size="small"
+                              onClick={e => handleConfirmModal(e, row.id, "manifest")}
+                              color=""
+                            >
+                              <FormattedMessage id="manifest" defaultMessage="manifest" />
+                            </ColorButton3>
+                          </>
+                        ) : null}
                       </StyledTableCell>
                     )}
                   </StyledTableRow>

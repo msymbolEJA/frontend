@@ -22,7 +22,7 @@ import CustomButtonGroup from "./CustomButtonGroup";
 import { withStyles, makeStyles } from "@material-ui/core/styles";
 import TablePaginationActions from "./TablePaginationActions";
 import CustomTableCell from "./CustomTableCell";
-import { tagsData, nonAdminTagsData } from "../../../helper/Constants";
+import { tagsData, nonAdminTagsData, isLabelStore } from "../../../helper/Constants";
 import { getData, putData, getAllPdf, postData, globalSearch } from "../../../helper/PostData";
 import { useHistory } from "react-router-dom";
 import CargoPage from "../../otheritems/CargoPage";
@@ -1199,9 +1199,6 @@ function AllOrdersTable() {
       });
   };
 
-  const updatedTags = [...tagsData];
-  updatedTags.splice(3, 0, "label");
-
   const cargo = [
     {
       label: "USPS",
@@ -1219,7 +1216,7 @@ function AllOrdersTable() {
         <CustomButtonGroup
           selectedTag={filters?.status}
           handleTagChange={handleTagChange}
-          tagsData={updatedTags}
+          tagsData={tagsData}
           nonAdminTagsData={nonAdminTagsData}
           searchHandler={searchHandler}
           loading={loading || inProgressLoading}
