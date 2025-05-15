@@ -130,6 +130,7 @@ export default function CustomizedTables() {
   const [lastResponse, setLastResponse] = useState(null);
   const [isMore, setIsMore] = useState(true);
   const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
+  const [isPrintLoading, setIsPrintLoading] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -273,6 +274,7 @@ export default function CustomizedTables() {
 
   const printHandler = (id, cargoType) => {
     if (id) {
+      setIsPrintLoading(true)
       if (cargoType === "DHL") {
         getData(`${BASE_URL}dhl/createdhlBulkLabel_cargo/${id}/`)
           .then(response => {
@@ -281,7 +283,9 @@ export default function CustomizedTables() {
           .catch(({ response }) => {
             console.log(response.data.Failed);
           })
-          .finally(() => {});
+          .finally(() => {
+            setIsPrintLoading(false);
+          });
       } else if (cargoType === "USPS") {
         getData(`${BASE_URL}usps/createuspsBulkLabel_cargo/${id}/`)
           .then(response => {
@@ -290,7 +294,9 @@ export default function CustomizedTables() {
           .catch(({ response }) => {
             console.log(response.data.Failed);
           })
-          .finally(() => {});
+          .finally(() => {
+            setIsPrintLoading(false);
+          });
       }
     }
   };
@@ -471,6 +477,7 @@ export default function CustomizedTables() {
                             variant="contained"
                             color="primary"
                             className={classes.print}
+                            disabled={isPrintLoading}
                             onClick={() =>
                               printHandler(
                                 row.id,
