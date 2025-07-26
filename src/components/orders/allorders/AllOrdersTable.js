@@ -1383,7 +1383,27 @@ function AllOrdersTable() {
                 target="_blank"
                 rel="noreferrer"
               >
-                Open Google Sheet
+                Hediye Notu Çek
+              </a>
+            </div>
+          )}
+          {selectedTag === "in_progress" &&
+          userRole !== "workshop_designer" &&
+          userRole !== "workshop_designer2" &&
+          process.env.REACT_APP_GOOGLE_SHEET_LINK_ADDRESS && (
+            <div
+              style={{
+                marginRight: "10px",
+                textAlign: "right",
+              }}
+            >
+              <a
+                style={{ fontSize: "1rem", marginTop: "10px" }}
+                href={process.env.REACT_APP_GOOGLE_SHEET_LINK_ADDRESS}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Aynı Adresleri Çek
               </a>
             </div>
           )}
