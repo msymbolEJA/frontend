@@ -174,7 +174,7 @@ const CargoPage = ({ getListFunc, id, setRefresh }) => {
               id: "description",
               defaultMessage: "Description",
             })}
-            required={true}
+            required={false}
             type="text"
             variant="outlined"
             name="ref_number_f"
