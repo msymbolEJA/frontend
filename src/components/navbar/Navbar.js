@@ -594,6 +594,11 @@ export default function MenuAppBar() {
                 {/*         <MenuItem onClick={handleSettingsPage}>
                   <FormattedMessage id="settings" defaultMessage="Settings" />
                 </MenuItem> */}
+
+                <MenuItem id="workload" onClick={e => handleDirClick(e)}>
+                  <FormattedMessage id="workload" defaultMessage="Workload" />
+                </MenuItem>
+
                 <MenuItem onClick={handleLogout}>
                   <FormattedMessage id="logout" defaultMessage="Logout" />
                 </MenuItem>

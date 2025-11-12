@@ -173,5 +173,13 @@
   "getLabels": "Get Label",
   "getMissingLabels": "Get Missing Label",
   "manifest": "Manifest",
-  "shippingLabel": "Shipping Label"
+  "shippingLabel": "Shipping Label",
+  "workload": "Workload Statistics",
+  "by_station": "Stations",
+  "users": "Users",
+  "person": "Person",
+  "task_details": "Task Details",
+  "score": "Score",
+  "error": "Error",
+  "performance_score": "Performance Score"
 }
