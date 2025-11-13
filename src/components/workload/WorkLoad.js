@@ -286,26 +286,6 @@ const WorkLoad = () => {
               </div>
             </div>
 
-            {/* <select value={"station"}>
-
-              <option value="" disabled selected>
-                İstasyon
-              </option>
-
-              <option value="cutting">
-                <FormattedMessage id="cutting" defaultMessage="Cutting" />
-              </option>
-
-              <option value="sewing">
-                <FormattedMessage id="sewing" defaultMessage="Sewing" />
-              </option>
-
-              <option value="package">
-                <FormattedMessage id="package" defaultMessage="package" />
-              </option>
-
-
-            </select> */}
             <div
               style={{
                 display: mobileView ? "block" : "flex",
@@ -323,22 +303,33 @@ const WorkLoad = () => {
                     id: "station",
                     defaultMessage: "station",
                   }).toUpperCase()} </option>
-                  <option value="KESIM"> {formatMessage({
-                    id: "cutting",
-                    defaultMessage: "cutting",
+                  <option value="G"> {formatMessage({
+                    id: "G",
+                    defaultMessage: "G",
                   }).toUpperCase()}</option>
-                  <option value="DIKIM">{formatMessage({
-                    id: "sewing",
-                    defaultMessage: "sewing",
+                  <option value="Z">{formatMessage({
+                    id: "Z",
+                    defaultMessage: "Z",
                   }).toUpperCase()}</option>
-                  <option value="PAKET">{formatMessage({
-                    id: "package",
-                    defaultMessage: "package",
+                  <option value="K">{formatMessage({
+                    id: "K",
+                    defaultMessage: "K",
+                  }).toUpperCase()}</option>
+                  <option value="C">{formatMessage({
+                    id: "C",
+                    defaultMessage: "C",
+                  }).toUpperCase()}</option>
+                  <option value="R">{formatMessage({
+                    id: "R",
+                    defaultMessage: "R",
+                  }).toUpperCase()}</option>
+                  <option value="Klt">{formatMessage({
+                    id: "Klt",
+                    defaultMessage: "Klt",
                   }).toUpperCase()}</option>
                 </select>
-
-
               </div>
+              
               <div className={classes.inputs}>
                 <label htmlFor="endDate" className={classes.label}>
                   <FormattedMessage id="user" defaultMessage="User" />:
@@ -363,7 +354,7 @@ const WorkLoad = () => {
                   className={classes.btn}
                   color="secondary"
                   onClick={handleExcel}
-                  disabled={data.isLoading}
+                  disabled="true" //{data.isLoading}
                 >
                   Excel
                 </Button>
@@ -400,7 +391,7 @@ const WorkLoad = () => {
             justifyContent: "center",
           }}
         >
-          <TableContainer className={classes.tContainer} component={Paper}>
+          <TableContainer className={classes.tContainer} component={Paper}  >
             <h3 style={{ textAlign: "center", marginTop: 10 }}>
               {beginnerDateRef.current?.value &&
                 endDateRef.current?.value &&
@@ -408,7 +399,8 @@ const WorkLoad = () => {
             </h3>
             <Table className={classes.table}>
               <TableHead>
-                <TableRow className={classes.tableCellHeader}>
+                <TableRow className={classes.tableCellHeader} style={{ backgroundColor: "rgb(100, 149, 237)", color: "white" }}>
+
                   <TableCell className={classes.boldText} align="center">
                     <FormattedMessage id="person" defaultMessage="Person" />
                   </TableCell>
@@ -424,9 +416,11 @@ const WorkLoad = () => {
                   <TableCell className={classes.boldText} align="center">
                     <FormattedMessage id="error" defaultMessage="Error" />
                   </TableCell>
+
                   <TableCell className={classes.boldText} align="center">
                     <FormattedMessage id="performance_score" defaultMessage="Performance Score" />
                   </TableCell>
+
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -435,6 +429,7 @@ const WorkLoad = () => {
                     <TableRow
                       className={classes.boldText}
                       key={index}
+                      style={{ backgroundColor: index % 2 === 0 ? "rgb(224, 224, 224)" : "white" }}
                     >
                       <TableCell align="center" className={classes.boldText}>
                         {item?.type}

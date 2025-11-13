@@ -10,7 +10,7 @@ const ApexChart = ({ data, title }) => {
   const groupedData = {};
   let totalCount = 0;
 
-  data.forEach(item => {
+  data?.forEach(item => {
     const { type, count } = item;
 
     // Farklı veri yapılarına uyumlu: by_type varsa onu kullan, yoksa count'un kendisini
@@ -47,7 +47,7 @@ const ApexChart = ({ data, title }) => {
 
   return (
     <div style={{ marginTop: 40, marginBottom: 20 }}>
-      <FormattedMessage id={title} defaultMessage={title} /> {" "}
+      <FormattedMessage id={title || "No Data"} defaultMessage={title || "No Data"} /> {" "}
       {(process.env.REACT_APP_STORE_NAME === "Güneş Serisi" ||
         process.env.REACT_APP_STORE_NAME === "Uludag" ||
         process.env.REACT_APP_STORE_NAME === "Linen Serisi" ||
