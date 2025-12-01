@@ -114,87 +114,108 @@ export default function CustomizedTables() {
       !localStorage.getItem("localRole") ||
       localStorage.getItem("localRole") === "null") &&
     !["asya", "umraniye"].includes(localStorage.getItem("workshop")?.toLowerCase());
+
   const classes = useStyles();
   const [cargoList, setCargoList] = useState([]);
   const history = useHistory();
   const [getSupplier, setGetSupplier] = useState("");
   const [selectedItem, setSelectedItem] = useState();
   const { isAdmin, user } = useContext(AppContext);
-  const [page, setPage] = useState(0);
-
-  let localRole = localStorage.getItem("localRole");
-
-  const userRole = user?.role || localRole;
-  const filters = getQueryParams();
 
   const [lastResponse, setLastResponse] = useState(null);
   const [isMore, setIsMore] = useState(true);
-  const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
-  const [isPrintLoading, setIsPrintLoading] = useState(false)
+  const [isLoadingMore, setIsLoadingMore] = useState(false); // <-- YENİ: çift fetch engelleyici
+  const [isPrintLoading, setIsPrintLoading] = useState(false);
 
+  const userRole = user?.role || localStorage.getItem("localRole");
+  const filters = getQueryParams();
+
+  // ----------------------------
+  //   INFINITE SCROLL FIXED
+  // ----------------------------
   useEffect(() => {
     const handleScroll = () => {
-      if (!hasScrolledToBottom) {
-        const scrollThreshold = 0.7; // Set your threshold (70% in this example)
+      const bottomOffset = 300; // sayfanın altına 300px kala fetch
 
-        const scrollPosition = window.innerHeight + window.scrollY;
-        const scrollableHeight = document.body.offsetHeight;
-        const scrollableThreshold = scrollableHeight * scrollThreshold;
+      const scrollPosition = window.innerHeight + window.scrollY;
+      const scrollLimit = document.body.offsetHeight - bottomOffset;
 
-        if (scrollPosition >= scrollableThreshold && lastResponse?.next && isMore) {
-          setHasScrolledToBottom(true);
-          getListFunc(lastResponse?.next);
-
-          // Set the flag to true to ensure it only triggers once
-        }
+      if (
+        scrollPosition >= scrollLimit &&
+        !isLoadingMore &&          // Çift fetch engelliyor
+        lastResponse?.next &&      // API next var mı
+        isMore                     // Daha veri var mı
+      ) {
+        loadMore(lastResponse.next);
       }
     };
+
     window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [isLoadingMore, lastResponse, isMore]);
 
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, [hasScrolledToBottom, lastResponse]);
+  // ----------------------------
+  //   FETCH FUNCTION
+  // ----------------------------
 
-  const getListFunc = link => {
-    getData(
-      link ||
-        `${BASE_URL}etsy/shipment_content_view/?limit=${filters?.limit ?? 50}&offset=${
-          filters?.offset ?? 0
-        }`,
-    ).then(response => {
-      let dataObj = response?.data?.results;
-      const formattedData = dataObj
-        ? Object.keys(dataObj).flatMap(key => {
-            const shipmentData = dataObj[key];
-            console.log("key?.split(" ** ")[1]", key?.split("**")[1]);
-            return {
-              ...shipmentData,
-              refNumber: key,
-              description: key?.split("**")[1],
-            };
-          })
-        : [];
+  const loadMore = (link) => {
+    setIsLoadingMore(true);
 
-      const clist = cargoList || [];
+    getData(link)
+      .then((response) => {
+        const dataObj = response?.data?.results;
 
-      // Remove duplicates based on the "id" property
+        const formattedData = dataObj
+          ? Object.keys(dataObj).flatMap((key) => {
+              const shipmentData = dataObj[key];
+              return {
+                ...shipmentData,
+                refNumber: key,
+                description: key?.split("**")[1],
+              };
+            })
+          : [];
 
-      const l = Object.keys(dataObj)?.length;
+        setCargoList((prev) => [...prev, ...formattedData]);
+        setLastResponse(response.data);
 
-      if (l) {
-        const test = clist.concat([...formattedData]);
-
-        setCargoList(test);
-        setLastResponse(response?.data);
-        setHasScrolledToBottom(false);
-      }
-      if (l !== 10) setIsMore(false);
-    });
+        if (!response?.data?.next) {
+          setIsMore(false);
+        }
+      })
+      .finally(() => setIsLoadingMore(false));
   };
+
+  const getListFunc = () => {
+    const link = `${BASE_URL}etsy/shipment_content_view/?limit=${filters?.limit ?? 50}&offset=${
+      filters?.offset ?? 0
+    }`;
+
+    setIsLoadingMore(true);
+    getData(link)
+      .then((response) => {
+        const dataObj = response?.data?.results;
+
+        const formattedData = dataObj
+          ? Object.keys(dataObj).flatMap((key) => {
+              const shipmentData = dataObj[key];
+              return {
+                ...shipmentData,
+                refNumber: key,
+                description: key?.split("**")[1],
+              };
+            })
+          : [];
+
+        setCargoList(formattedData);
+        setLastResponse(response.data);
+        setIsMore(Boolean(response?.data?.next));
+      })
+      .finally(() => setIsLoadingMore(false));
+  };
+
   useEffect(() => {
     getListFunc();
-    // eslint-disable-next-line
   }, [getSupplier]);
 
   const tnFunc = (tn, carrier) => {
