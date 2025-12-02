@@ -1,174 +1,193 @@
 /* eslint-disable array-callback-return */
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useState, useEffect, useMemo } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
 import SummaryTable from "./SummaryTable";
 import { AppContext } from "../../context/Context";
-import { useIntl, FormattedMessage } from "react-intl";
-// Icons
+import { useIntl } from "react-intl";
 import {
   ListAlt as ListAltIcon,
   LocalShipping as LocalShippingIcon,
   CardGiftcard as CardGiftcardIcon,
 } from "@material-ui/icons";
-import Button from "@material-ui/core/Button";
 
 import { getData } from "../../helper/PostData";
 import { isLabelStore, sortingArrayAdmin, sortingArrayUser } from "../../helper/Constants";
 import FloatingMenu from "./FloatingMenu";
-// import CostGetter from "./CostGetter";
 
 const BASE_URL = process.env.REACT_APP_BASE_URL;
 
-const useStyles = makeStyles(theme => ({
-  root: {
-    marginTop: 20,
-    marginRight: 50,
-    marginLeft: 50,
-  },
-  boxes: {
-    flexGrow: 1,
-    position: "relative",
-  },
-  icon: {
-    fontSize: 50,
-  },
-  button: {
-    marginTop: "1rem",
-  },
+const useStyles = makeStyles(() => ({
+  root: { marginTop: 20, marginRight: 50, marginLeft: 50 },
+  boxes: { flexGrow: 1, position: "relative" },
+  icon: { fontSize: 50 },
 }));
 
 const Dashboard = () => {
   const classes = useStyles();
   const { user } = useContext(AppContext);
   const { formatMessage } = useIntl();
+
   const [orderSummary, setOrderSummary] = useState();
   const [workshopDueDates, setWorkshopDueDates] = useState();
   const [shipmentDueDates, setShipmentDueDates] = useState();
-  const [lastDateOfOrder, setlastDateOfOrder] = useState();
+  const [lastDateOfOrder, setLastDateOfOrder] = useState();
   const [healthCheck, setHealthCheck] = useState(false);
 
-  let localRole = localStorage.getItem("localRole");
-
+  const localRole = useMemo(() => localStorage.getItem("localRole"), []);
   const userRole = user?.role || localRole;
 
-  const getListFunc = () => {
-    getData(`${BASE_URL}etsy/summary_order/`).then(response => {
-      const newResult = [];
-      setlastDateOfOrder(response.data[2]);
-      const etsyCheck = response.data.filter(item => Object.keys(item)[0] === "check")?.[0]?.check;
+  // ------------------------------------------------------
+  // ROLE STATUS (useMemo — prevents re-calculation)
+  // ------------------------------------------------------
+  const newStatu = useMemo(() => {
+    if (["admin", "shop_manager", "shop_packer"].includes(localRole)) return "pending";
+    if (["workshop_designer", "workshop_designer2"].includes(localRole)) return "in_progress";
+    return "awaiting";
+  }, [localRole]);
 
-      if (process.env.REACT_APP_STORE_NAME_ORJ === "Belky") {
-        setHealthCheck(etsyCheck);
-      } else {
-        const isShopify = response.data.filter(
-          item => Object.keys(item)[0] === "check_shopify",
-        )?.length;
+  // ------------------------------------------------------
+  // SORTING ARRAY (useMemo — prevents heavy calculations)
+  // ------------------------------------------------------
+  const currentSortingArray = useMemo(() => {
+    const base =
+      ["admin", "shop_manager", "shop_packer"].includes(userRole)
+        ? [...sortingArrayAdmin]
+        : [...sortingArrayUser];
 
-        const shopifyCheck = response.data.filter(
-          item => Object.keys(item)[0] === "check_shopify",
-        )?.[0]?.check_shopify;
+    if (isLabelStore && !base.includes("LABEL")) {
+      return [...base.slice(0, 3), "LABEL", ...base.slice(3)];
+    }
+    return base;
+  }, [userRole]);
 
-        if (isShopify) {
-          setHealthCheck(shopifyCheck && etsyCheck);
-        } else {
-          setHealthCheck(etsyCheck);
+  // ------------------------------------------------------
+  // FETCH ALL DATA IN PARALLEL
+  // ------------------------------------------------------
+  useEffect(() => {
+    Promise.all([
+      getData(`${BASE_URL}etsy/summary_order/`),
+      getData(`${BASE_URL}etsy/due_dates/`),
+      getData(`${BASE_URL}etsy/shipment_due_dates/`),
+    ])
+      .then(([summary, due, shipment]) => {
+        processSummary(summary.data);
+        processWorkshop(due.data);
+        processShipment(shipment.data);
+      })
+      .catch(err => console.log("Dashboard load error →", err));
+  }, []);
+
+  // ------------------------------------------------------
+  // PROCESS SUMMARY ORDER
+  // ------------------------------------------------------
+  const processSummary = data => {
+    if (!data || !Array.isArray(data)) return;
+
+    setLastDateOfOrder(data[2]);
+
+    let etsyCheck = null;
+    let shopifyCheck = null;
+
+    // Tek loop → maksimum performans
+    for (const item of data) {
+      const key = Object.keys(item)[0];
+      if (key === "check") etsyCheck = item.check;
+      if (key === "check_shopify") shopifyCheck = item.check_shopify;
+    }
+
+    // Health check
+    if (process.env.REACT_APP_STORE_NAME_ORJ === "Belky") {
+      setHealthCheck(etsyCheck);
+    } else {
+      setHealthCheck(
+        shopifyCheck !== null ? shopifyCheck && etsyCheck : etsyCheck
+      );
+    }
+
+    // Status list
+    const statuses = [];
+
+    for (const row of data[0]) {
+      statuses.push({
+        cell1: row.status.replace("_", " ").replace("-", " ").toUpperCase(),
+        cell2: row.status_count,
+      });
+    }
+
+    // Repeat
+    for (const row of data[1]) {
+      if (row.is_repeat) statuses.push({ cell1: "REPEAT", cell2: row.status_count });
+    }
+
+    // Sorted order
+    const sorted = currentSortingArray.map(type => {
+      const match = statuses.find(s => s.cell1 === type);
+      return match || { cell1: type, cell2: 0 };
+    });
+
+    setOrderSummary(sorted.length ? sorted : "noOrders");
+  };
+
+  // ------------------------------------------------------
+  // PROCESS WORKSHOP DUE DATES
+  // ------------------------------------------------------
+  const processWorkshop = obj => {
+    try {
+      const result = [];
+      for (const key in obj) {
+        if (obj[key].is_late) {
+          result.push({ cell1: key, cell2: obj[key].values.length });
+        }
+      }
+      setWorkshopDueDates(result.length ? result : "noOrders");
+    } catch {
+      setWorkshopDueDates("noOrders");
+    }
+  };
+
+  // ------------------------------------------------------
+  // PROCESS SHIPMENT DUE DATES
+  // ------------------------------------------------------
+  const processShipment = obj => {
+    try {
+      const result = [];
+      for (const key in obj) {
+        if (obj[key].is_late) {
+          result.push({ cell1: key, cell2: obj[key].values.length });
         }
       }
 
-      response.data[0].forEach(item => {
-        newResult.push({
-          cell1: item.status?.replace("_", " ")?.replace("-", " ").toUpperCase(),
-          cell2: item.status_count,
-        });
-      });
-      response.data[1].forEach(item => {
-        if (item.is_repeat) newResult.push({ cell1: "REPEAT", cell2: item.status_count });
-      });
-
-      const currentSortingArray =
-        userRole === "admin" || userRole === "shop_manager" || userRole === "shop_packer"
-          ? [...sortingArrayAdmin]
-          : [...sortingArrayUser];
-
-      if (isLabelStore && !currentSortingArray.includes("LABEL"))
-        currentSortingArray.splice(3, 0, "LABEL");
-      const newResult2 = currentSortingArray.map((object, i) => {
-        let currentObject = newResult.find(x => x.cell1 === object);
-        if (!currentObject) currentObject = { cell1: object, cell2: 0 };
-        return currentObject;
-      });
-      setOrderSummary(newResult2.length ? newResult2 : "noOrders");
-    });
+      setShipmentDueDates(
+        result.length > 10 ? result.slice(-10) : result.length ? result : "noOrders"
+      );
+    } catch {
+      setShipmentDueDates("noOrders");
+    }
   };
 
-  useEffect(() => {
-    getListFunc();
-    // eslint-disable-next-line
-  }, []);
-
-  useEffect(() => {
-    getData(`${BASE_URL}etsy/due_dates/`)
-      .then(response => {
-        const newResult = [];
-        const obj = response.data;
-        Object.keys(obj).map((key, value) => {
-          if (obj[key].is_late) newResult.push({ cell1: key, cell2: obj[key].values.length });
-        });
-        setWorkshopDueDates(newResult.length ? newResult : "noOrders");
-      })
-      .catch(err => {
-        setWorkshopDueDates("noOrders");
-      });
-  }, []);
-
-  useEffect(() => {
-    getData(`${BASE_URL}etsy/shipment_due_dates/`)
-      .then(response => {
-        const newResult = [];
-        const obj = response.data;
-        Object.keys(obj).map((key, value) => {
-          if (obj[key].is_late) newResult.push({ cell1: key, cell2: obj[key].values.length });
-        });
-        setShipmentDueDates(newResult.length ? newResult : "noOrders");
-      })
-      .catch(err => {
-        setShipmentDueDates("noOrders");
-      });
-  }, []);
-
-  // console.log("localUser", localUser);
-  // console.log(localUser === "admin");
-  const newStatu =
-    localRole === "admin" || localRole === "shop_manager" || localRole === "shop_packer"
-      ? "pending"
-      : localRole === "workshop_designer" || localRole === "workshop_designer2"
-        ? "in_progress"
-        : "awaiting";
-  // console.log({ localRole });
-  // console.log({ newStatu });
-
+  // ------------------------------------------------------
+  // RENDER
+  // ------------------------------------------------------
   return (
     <div className={classes.root}>
       <div className={classes.boxes}>
         <FloatingMenu lastDateOfOrder={lastDateOfOrder} healthCheck={healthCheck} />
+
         <Grid container spacing={2} style={{ justifyContent: "center" }}>
+          {/* ORDER SUMMARY */}
           <SummaryTable
             title="orders"
             total={0}
             next={`/all-orders?&status=${newStatu}`}
             icon={<ListAltIcon className={classes.icon} color="primary" />}
-            header1={formatMessage({
-              id: "status",
-              defaultMessage: "STATUS",
-            }).toUpperCase()}
-            header2={formatMessage({
-              id: "count",
-              defaultMessage: "COUNT",
-            }).toUpperCase()}
+            header1={formatMessage({ id: "status", defaultMessage: "STATUS" }).toUpperCase()}
+            header2={formatMessage({ id: "count", defaultMessage: "COUNT" }).toUpperCase()}
             data={orderSummary}
             lastDateOfOrder={lastDateOfOrder}
           />
+
+          {/* WORKSHOP */}
           <SummaryTable
             title="behindSchedule"
             total={0}
@@ -184,7 +203,9 @@ const Dashboard = () => {
             }).toUpperCase()}
             data={workshopDueDates}
           />
-          {userRole === "admin" || userRole === "shop_manager" || userRole === "shop_packer" ? (
+
+          {/* SHIPMENT — Only managers */}
+          {["admin", "shop_manager", "shop_packer"].includes(userRole) && (
             <SummaryTable
               title="behindOverallSchedule"
               total={0}
@@ -198,18 +219,9 @@ const Dashboard = () => {
                 id: "quantity",
                 defaultMessage: "QUANTITY",
               }).toUpperCase()}
-              data={
-                shipmentDueDates?.length > 10
-                  ? shipmentDueDates?.slice(Math.max(shipmentDueDates?.length - 10, 0))
-                  : shipmentDueDates
-              }
+              data={shipmentDueDates}
             />
-          ) : null}
-          {/* {userRole === "admin" ? (
-            <>
-              <CostGetter />
-            </>
-          ) : null} */}
+          )}
         </Grid>
       </div>
     </div>
