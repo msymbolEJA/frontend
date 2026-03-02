@@ -489,6 +489,9 @@ export default function MenuAppBar() {
                 open={open}
                 onClose={handleClose}
               >
+                <MenuItem id="workload" onClick={e => handleDirClick(e)}>
+                  <FormattedMessage id="workload" defaultMessage="workload" />
+                </MenuItem>
                 <MenuItem onClick={handleLogout}>
                   <FormattedMessage id="logout" defaultMessage="Logout" />
                 </MenuItem>
@@ -570,6 +573,10 @@ export default function MenuAppBar() {
                   </MenuItem>
                 )}
 
+                <MenuItem id="workload" onClick={e => handleDirClick(e)}>
+                  <FormattedMessage id="workload" defaultMessage="workload" />
+                </MenuItem>
+
                 {(userRole === "admin" ||
                   userRole === "shop_manager" ||
                   userRole === "shop_packer") && (
@@ -594,6 +601,7 @@ export default function MenuAppBar() {
                 {/*         <MenuItem onClick={handleSettingsPage}>
                   <FormattedMessage id="settings" defaultMessage="Settings" />
                 </MenuItem> */}
+
                 <MenuItem onClick={handleLogout}>
                   <FormattedMessage id="logout" defaultMessage="Logout" />
                 </MenuItem>

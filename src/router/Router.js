@@ -32,6 +32,7 @@ import CostTable from "../components/costtable/CostTable";
 import BestSeller from "../components/best-seller/BestSeller";
 import Favourites from "../components/favourites/Favourites";
 import Favourite from "../components/favourites/Favourite";
+import WorkLoad from "../components/workload/WorkLoad";
 
 const history = require("history").createBrowserHistory();
 
@@ -89,6 +90,7 @@ const DefaultContainer = () => (
     <PrivateRouter exact path="/ready-orders" component={ReadyOrders} />
     <PrivateRouter exact path="/cargo-list" component={CargoList} />
     <PrivateRouter exact path="/best-seller" component={BestSeller} />
+    <PrivateRouter exact path="/workload" component={WorkLoad} />
     <PrivateRouter
       exact
       path="/workshop-due-dates"

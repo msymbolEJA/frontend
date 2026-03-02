@@ -218,5 +218,13 @@
   "getLabels": "Label Al",
   "getMissingLabels": "Eksik Labelları Getir",
   "manifest": "Manifest",
-  "shippingLabel": "Kargo Etiketi"
+  "shippingLabel": "Kargo Etiketi",
+  "workload": "İş Yükü Dağılımları",
+  "by_station": "İstasyonlar",
+  "users": "Kullanıcılar",
+  "person": "Kişi",
+  "task_details": "Görev Detayları",
+  "score": "Puan",
+  "error": "Hata",
+  "performance_score": "Performans Puanı"
 }

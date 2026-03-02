@@ -230,17 +230,14 @@ function AllOrdersTable() {
         filters.ordering = "-last_updated";
       } else filters.ordering = "-id";
 
-      const url = `${BASE_URL}etsy/orders/?${
-        filters?.status !== "all_orders" && filters?.status !== "repeat"
-          ? `status=${filters?.status}`
-          : `status=awaiting`
-      }&is_followup=${filters?.is_followup}&country_filter=${filters?.country}&ordering=${
-        filters?.ordering
-      }&limit=${filters?.limit || 0}&offset=${filters?.offset}`;
+      const url = `${BASE_URL}etsy/orders/?${filters?.status !== "all_orders" && filters?.status !== "repeat"
+        ? `status=${filters?.status}`
+        : `status=awaiting`
+        }&is_followup=${filters?.is_followup}&country_filter=${filters?.country}&ordering=${filters?.ordering
+        }&limit=${filters?.limit || 0}&offset=${filters?.offset}`;
 
-      const labelUrl = `${BASE_URL}/etsy/orders/?is_label_ready=true&is_label=false&country_filter=${filters?.country}&ordering=${
-        filters?.ordering
-      }&limit=${filters?.limit || 0}&offset=${filters?.offset}`;
+      const labelUrl = `${BASE_URL}/etsy/orders/?is_label_ready=true&is_label=false&country_filter=${filters?.country}&ordering=${filters?.ordering
+        }&limit=${filters?.limit || 0}&offset=${filters?.offset}`;
 
       getData(filters?.status === "label" ? labelUrl : url)
         .then(response => {
@@ -650,7 +647,7 @@ function AllOrdersTable() {
     )
       return;
     putData(`${BASE_URL}etsy/mapping/${id}/`, data)
-      .then(response => {})
+      .then(response => { })
       .catch(error => {
         console.log(error);
         toastErrorNotify("Error, Please try again after refresh the page");
@@ -793,10 +790,15 @@ function AllOrdersTable() {
                 <FormattedMessage id="id" defaultMessage="Id" /> /
                 <FormattedMessage id="index" defaultMessage="Index" />
               </StyledTableCell>
+
               <StyledTableCell align="center" isLabel={filters?.status === "label"}>
                 <FormattedMessage id="createdTSZ" defaultMessage="Created" />
                 {" / "}
                 <FormattedMessage id="ready_date" defaultMessage="Approval Date" />
+              </StyledTableCell>
+
+              <StyledTableCell align="center" isLabel={filters?.status === "label"}>
+                <FormattedMessage id="stationStatus" defaultMessage="Station Status" />
               </StyledTableCell>
 
               {userRole !== "workshop_designer" && userRole !== "workshop_designer2" && (
@@ -872,10 +874,10 @@ function AllOrdersTable() {
                 <FormattedMessage id="explanation" defaultMessage="Explanation" />
               </StyledTableCell>
               {selectedTag === "in_progress" &&
-              (process.env.REACT_APP_STORE_NAME_ORJ === "Linenia" ||
-                process.env.REACT_APP_STORE_NAME_ORJ === "ShinyCustomized" ||
-                process.env.REACT_APP_STORE_NAME_ORJ === "LinenByMN" ||
-                process.env.REACT_APP_STORE_NAME_ORJ === "DALLAS") ? (
+                (process.env.REACT_APP_STORE_NAME_ORJ === "Linenia" ||
+                  process.env.REACT_APP_STORE_NAME_ORJ === "ShinyCustomized" ||
+                  process.env.REACT_APP_STORE_NAME_ORJ === "LinenByMN" ||
+                  process.env.REACT_APP_STORE_NAME_ORJ === "DALLAS") ? (
                 <StyledTableCell align="center" isLabel={filters?.status === "label"}>
                   <FormattedMessage id="showInGoogleSheet" defaultMessage="Google Sheet?" />
                 </StyledTableCell>
@@ -961,6 +963,114 @@ function AllOrdersTable() {
                     }}
                   />
                   {/*   <CustomTableCell {...{ row, name: "ready_date" }} /> */}
+
+                  {/* Station Status Cell with two-column layout */}
+                  <td>
+                    <div
+                      style={{
+                        // Ana kapsayıcıyı Flexbox yaparak içeriği yatayda iki sütuna böler
+                        display: "flex",
+                        width: "100%",
+                        // Sütunların eşit genişlikte olmasını sağlar
+                        gap: "20px",
+                        padding: "5px 0",
+                      }}
+                    >
+
+                      {/* 👈 SOL SÜTUN (G, Z, K) */}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+
+                        {/* G Kutusu */}
+                        <div
+                          style={{
+                            display: "flex",
+                            gap: 3,
+                            padding: "5px 10px",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                          }}
+                        >
+                          <FormattedMessage id="G" defaultMessage="G" />
+                          <Checkbox disabled checked={row?.G} />
+                        </div>
+
+                        {/* Z Kutusu */}
+                        <div
+                          style={{
+                            display: "flex",
+                            gap: 3,
+                            padding: "5px 10px",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                          }}
+                        >
+                          <FormattedMessage id="Z" defaultMessage="Z" />
+                          <Checkbox disabled checked={row?.Z} />
+                        </div>
+
+                        {/* K Kutusu */}
+                        <div
+                          style={{
+                            display: "flex",
+                            gap: 3,
+                            padding: "5px 10px",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                          }}
+                        >
+                          <FormattedMessage id="K" defaultMessage="K" />
+                          <Checkbox disabled checked={row?.K} />
+                        </div>
+                      </div>
+
+                      {/* 👉 SAĞ SÜTUN (C, R, Klt) */}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+
+                        {/* C Kutusu */}
+                        <div
+                          style={{
+                            display: "flex",
+                            gap: 3,
+                            padding: "5px 10px",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                          }}
+                        >
+                          <FormattedMessage id="C" defaultMessage="C" />
+                          <Checkbox disabled checked={row?.C} />
+                        </div>
+
+                        {/* R Kutusu */}
+                        <div
+                          style={{
+                            display: "flex",
+                            gap: 3,
+                            padding: "5px 10px",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                          }}
+                        >
+                          <FormattedMessage id="R" defaultMessage="R" />
+                          <Checkbox disabled checked={row?.R} />
+                        </div>
+
+                        {/* Klt Kutusu */}
+                        <div
+                          style={{
+                            display: "flex",
+                            gap: 3,
+                            padding: "5px 10px",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                          }}
+                        >
+                          <FormattedMessage id="Klt" defaultMessage="Klt" />
+                          <Checkbox disabled checked={row?.Klt} />
+                        </div>
+                      </div>
+
+                    </div>
+                  </td>
 
                   {userRole !== "workshop_designer" && userRole !== "workshop_designer2" && (
                     <CustomTableCell {...{ row, name: "buyer" }} />
@@ -1293,47 +1403,47 @@ function AllOrdersTable() {
             <div style={{ display: "inline-flex", flexWrap: "wrap" }}>
               {(filters?.status === "label" ? currentLabelList : currentBarcodeList)?.length
                 ? (filters?.status === "label" ? currentLabelList : currentBarcodeList)?.map(
-                    item => (
-                      <p
-                        key={item}
-                        style={{
-                          border: "1px blue solid",
-                          borderRadius: 4,
-                          color: "blue",
-                          margin: "0 5px",
-                          padding: "0 5px",
-                          fontWeight: "bold",
-                          height: "23px",
-                          cursor: "pointer",
-                        }}
-                        onClick={() =>
-                          filters?.status === "label"
-                            ? removeItemfromLabelList(item)
-                            : removeItemfromBarcodeList(item)
-                        }
-                      >
-                        {item}
-                        {(filters?.status === "label"
-                          ? currentLabelSiblingList
-                          : currentSiblingList
-                        )
-                          .filter(cs => cs?.id?.toString() === item?.toString())
-                          .map(s =>
-                            s.siblings.map((m, index) => (
-                              <span
-                                style={{
-                                  color: "black",
-                                  fontStyle: "italic",
-                                  fontSize: "0.8rem",
-                                }}
-                              >
-                                {`-${m}`}
-                              </span>
-                            )),
-                          )}
-                      </p>
-                    ),
-                  )
+                  item => (
+                    <p
+                      key={item}
+                      style={{
+                        border: "1px blue solid",
+                        borderRadius: 4,
+                        color: "blue",
+                        margin: "0 5px",
+                        padding: "0 5px",
+                        fontWeight: "bold",
+                        height: "23px",
+                        cursor: "pointer",
+                      }}
+                      onClick={() =>
+                        filters?.status === "label"
+                          ? removeItemfromLabelList(item)
+                          : removeItemfromBarcodeList(item)
+                      }
+                    >
+                      {item}
+                      {(filters?.status === "label"
+                        ? currentLabelSiblingList
+                        : currentSiblingList
+                      )
+                        .filter(cs => cs?.id?.toString() === item?.toString())
+                        .map(s =>
+                          s.siblings.map((m, index) => (
+                            <span
+                              style={{
+                                color: "black",
+                                fontStyle: "italic",
+                                fontSize: "0.8rem",
+                              }}
+                            >
+                              {`-${m}`}
+                            </span>
+                          )),
+                        )}
+                    </p>
+                  ),
+                )
                 : null}
             </div>
           </div>
@@ -1387,7 +1497,7 @@ function AllOrdersTable() {
               </a>
             </div>
           )}
-          {selectedTag === "in_progress" &&
+        {selectedTag === "in_progress" &&
           userRole !== "workshop_designer" &&
           userRole !== "workshop_designer2" &&
           process.env.REACT_APP_GOOGLE_SHEET_LINK_ADDRESS && (
@@ -1440,9 +1550,9 @@ function AllOrdersTable() {
             }}
           >
             {userRole === "workshop_designer" ||
-            userRole === "workshop_designer2" ? null : loading || inProgressLoading ? (
-              <FormattedMessage id="updating" />
-            ) : (
+              userRole === "workshop_designer2" ? null : loading || inProgressLoading ? (
+                <FormattedMessage id="updating" />
+              ) : (
               <>
                 <FormattedMessage id="total" defaultMessage="Total" />{" "}
                 <FormattedMessage
