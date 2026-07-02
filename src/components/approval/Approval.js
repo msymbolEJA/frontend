@@ -172,6 +172,7 @@ function App({ history }) {
   const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
 
   const [allZip, setAllZip] = useState([]);
+  const [typeOptions, setTypeOptions] = useState([]);
 
   const [selectedCargo, setSelectedCargo] = useState("usps");
 
@@ -202,6 +203,16 @@ function App({ history }) {
         console.log(error);
       });
   };
+
+  const getTypeOptions = useCallback(() => {
+    getData(`${BASE_URL}etsy/typleList/`)
+      .then(response => {
+        setTypeOptions(response?.data?.results || []);
+      })
+      .catch(error => {
+        console.log("typleList fetch error", error);
+      });
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -289,6 +300,10 @@ function App({ history }) {
   ]);
 
   useEffect(() => {
+    getTypeOptions();
+  }, [getTypeOptions]);
+
+  useEffect(() => {
     // setloading(true);
     setSelectedTag(filters?.status);
   }, [filters?.status]);
@@ -372,6 +387,26 @@ function App({ history }) {
       let data = { [name]: value };
       handleRowChange(id, data);
     }
+  };
+
+  const onTypeSelectChange = (e, row) => {
+    e.preventDefault();
+    const value = e.target.value;
+    if (!value) return;
+    handleRowChange(row.id, { type: value });
+  };
+
+  const isTypeMissing = value => {
+    const normalized = String(value ?? "")
+      .replace(/\s/g, "")
+      .toLowerCase();
+    return (
+      !normalized ||
+      normalized === "-" ||
+      normalized === "n/a" ||
+      normalized === "na" ||
+      normalized === "null"
+    );
   };
 
   const uploadFile = (e, id, imgFile) => {
@@ -1306,13 +1341,42 @@ function App({ history }) {
                       </>
                     ) : (
                       <>
-                        <SubjectiveTableCell
-                          {...{
-                            row,
-                            name: "type",
-                            onChange,
-                          }}
-                        />
+                        {!blockAfterInProgress && isTypeMissing(row?.type) ? (
+                          <td
+                            style={{
+                              padding: 10,
+                              borderRight: "0.5px solid #E0E0E0",
+                              minWidth: 120,
+                            }}
+                            onClick={e => e.stopPropagation()}
+                          >
+                            <select
+                              value={row.type || ""}
+                              onChange={e => onTypeSelectChange(e, row)}
+                              style={{
+                                width: "100%",
+                                minWidth: 100,
+                                backgroundColor: "transparent",
+                                borderColor: "#E0E0E0",
+                              }}
+                            >
+                              <option value="">Type seçin</option>
+                              {typeOptions.map(item => (
+                                <option key={item.desc} value={item.desc}>
+                                  {item.desc}
+                                </option>
+                              ))}
+                            </select>
+                          </td>
+                        ) : (
+                          <SubjectiveTableCell
+                            {...{
+                              row,
+                              name: "type",
+                              onChange,
+                            }}
+                          />
+                        )}
                         <SubjectiveTableCell
                           // var1
                           {...{
@@ -1554,6 +1618,7 @@ function App({ history }) {
               <FormattedMessage id="getLabels" defaultMessage="getLabels" />
             )}
           </Button>
+          
         </Box>
       ) : null}
     </Paper>
